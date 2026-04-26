@@ -1,12 +1,22 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { useAuth } from "@/context/AuthContext";
 import { products } from "@/data/products";
 import ProductCard from "@/components/products/ProductCard";
 
 export default function WishlistPage() {
   const { wishlist } = useStore();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const wishlisted = products.filter(p => wishlist.includes(p.id));
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="bg-[#F5F0E8] dark:bg-[#1C1A17] min-h-screen pt-16">

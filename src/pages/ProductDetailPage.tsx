@@ -6,8 +6,10 @@ import {
 } from "lucide-react";
 import { products } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
+import { useAuth } from "@/context/AuthContext";
 import ProductCard from "@/components/products/ProductCard";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const galleryImages = (mainImage: string) => [
   mainImage,
@@ -20,6 +22,7 @@ export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, toggleWishlist, wishlist } = useStore();
+  const { isAuthenticated } = useAuth();
 
   const product = products.find(p => p.id === id);
   const related = products.filter(p => p.id !== id && p.category === product?.category).slice(0, 4);
@@ -66,10 +69,18 @@ export default function ProductDetailPage() {
   const images = galleryImages(product.image);
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to add to cart");
+      return;
+    }
     addToCart(product, quantity, selectedVariant);
   };
 
   const handleWishlist = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to save favorites");
+      return;
+    }
     toggleWishlist(product.id);
     setHeartAnim(true);
     setTimeout(() => setHeartAnim(false), 400);

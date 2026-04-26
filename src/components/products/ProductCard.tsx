@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Heart, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/context/StoreContext";
+import { useAuth } from "@/context/AuthContext";
 import { Product } from "@/context/StoreContext";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +14,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, size = "default" }: ProductCardProps) {
   const { addToCart, toggleWishlist, wishlist } = useStore();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
   const [heartAnim, setHeartAnim] = useState(false);
@@ -19,6 +22,10 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.error("Please sign in to save favorites");
+      return;
+    }
     toggleWishlist(product.id);
     setHeartAnim(true);
     setTimeout(() => setHeartAnim(false), 400);
@@ -26,6 +33,10 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.error("Please sign in to add to cart");
+      return;
+    }
     if (product.inStock) addToCart(product);
   };
 
