@@ -1,0 +1,331 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Check, ChevronRight, Lock } from "lucide-react";
+import { useStore } from "@/context/StoreContext";
+import { cn } from "@/lib/utils";
+
+type Step = "info" | "shipping" | "payment";
+
+export default function CheckoutPage() {
+  const { cart, cartTotal, removeFromCart } = useStore();
+  const navigate = useNavigate();
+  const [step, setStep] = useState<Step>("info");
+  const [completed, setCompleted] = useState(false);
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoError, setPromoError] = useState(false);
+
+  const steps: { id: Step; label: string }[] = [
+    { id: "info", label: "Information" },
+    { id: "shipping", label: "Shipping" },
+    { id: "payment", label: "Payment" },
+  ];
+  const stepIndex = steps.findIndex(s => s.id === step);
+
+  const [form, setForm] = useState({
+    email: "", firstName: "", lastName: "",
+    address: "", city: "", state: "", zip: "", country: "United States",
+    shipping: "standard",
+    cardNumber: "", expiry: "", cvv: "", cardName: "",
+  });
+
+  const update = (key: string, value: string) => setForm(prev => ({ ...prev, [key]: value }));
+
+  const shippingOptions = [
+    { id: "standard", label: "Standard (4–6 weeks)", price: 0, note: "Free on orders over $2,000" },
+    { id: "express", label: "Express (2–3 weeks)", price: 180 },
+    { id: "white-glove", label: "White Glove Delivery", price: 350, note: "Includes assembly" },
+  ];
+
+  const shippingCost = cartTotal >= 2000
+    ? 0
+    : (shippingOptions.find(s => s.id === form.shipping)?.price || 0);
+
+  const discount = promoApplied ? cartTotal * 0.1 : 0;
+  const total = cartTotal + shippingCost - discount;
+
+  const handlePromo = () => {
+    if (promoCode.toLowerCase() === "forma10") {
+      setPromoApplied(true);
+      setPromoError(false);
+    } else {
+      setPromoError(true);
+      setPromoApplied(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (step === "info") setStep("shipping");
+    else if (step === "shipping") setStep("payment");
+    else {
+      setCompleted(true);
+    }
+  };
+
+  if (cart.length === 0 && !completed) {
+    navigate("/shop");
+    return null;
+  }
+
+  if (completed) {
+    return (
+      <div className="min-h-screen bg-[#F5F0E8] dark:bg-[#1C1A17] flex flex-col items-center justify-center px-6 text-center">
+        <div className="w-16 h-16 rounded-full bg-[#C8A97E]/20 flex items-center justify-center mb-8">
+          <Check size={28} className="text-[#C8A97E]" />
+        </div>
+        <h1 className="font-display text-5xl font-light text-[#1C1A17] dark:text-[#F5F0E8] mb-4">
+          Thank you
+        </h1>
+        <p className="font-body text-base text-[#1C1A17]/60 dark:text-[#F5F0E8]/60 max-w-sm mb-10 leading-relaxed">
+          Your order has been confirmed. We'll be in touch with delivery updates.
+        </p>
+        <p className="font-accent text-xs text-[#C8A97E] tracking-widest uppercase mb-8">
+          Order #FMA-{Math.floor(Math.random() * 90000) + 10000}
+        </p>
+        <button
+          onClick={() => navigate("/")}
+          className="px-10 py-4 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-sm tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"
+        >
+          Continue Exploring
+        </button>
+      </div>
+    );
+  }
+
+  const InputField = ({ label, value, onChange, type = "text", placeholder = "" }: {
+    label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
+  }) => (
+    <div className="flex flex-col gap-1.5">
+      <label className="font-accent text-xs font-500 tracking-wide text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-12 px-4 bg-[#EDE8DF] dark:bg-[#252220] border border-[#C8A97E]/20 focus:border-[#C8A97E] outline-none font-body text-sm text-[#1C1A17] dark:text-[#F5F0E8] placeholder-[#1C1A17]/30 dark:placeholder-[#F5F0E8]/30 transition-colors"
+      />
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#F5F0E8] dark:bg-[#1C1A17]">
+      {/* Minimal header */}
+      <header className="border-b border-[#C8A97E]/20 px-6 md:px-16 h-16 flex items-center justify-between max-w-[1440px] mx-auto">
+        <Link to="/" className="font-display text-2xl font-light tracking-[0.12em] text-[#1C1A17] dark:text-[#F5F0E8]">
+          Forma
+        </Link>
+        <div className="flex items-center gap-1 font-accent text-xs text-[#1C1A17]/50 dark:text-[#F5F0E8]/50">
+          <Lock size={12} className="text-[#C8A97E]" />
+          Secure Checkout
+        </div>
+      </header>
+
+      {/* Progress */}
+      <div className="border-b border-[#C8A97E]/20 px-6 py-5">
+        <div className="max-w-[700px] mx-auto flex items-center justify-center gap-2">
+          {steps.map((s, i) => (
+            <div key={s.id} className="flex items-center gap-2">
+              <div className={cn(
+                "flex items-center gap-2 font-accent text-xs tracking-wide",
+                i <= stepIndex ? "text-[#1C1A17] dark:text-[#F5F0E8]" : "text-[#1C1A17]/40 dark:text-[#F5F0E8]/40"
+              )}>
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-600",
+                  i < stepIndex ? "bg-[#C8A97E] text-[#1C1A17]" :
+                  i === stepIndex ? "bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17]" :
+                  "bg-[#1C1A17]/10 dark:bg-[#F5F0E8]/10 text-[#1C1A17]/50 dark:text-[#F5F0E8]/50"
+                )}>
+                  {i < stepIndex ? <Check size={10} /> : i + 1}
+                </div>
+                {s.label}
+              </div>
+              {i < steps.length - 1 && (
+                <ChevronRight size={12} className="text-[#1C1A17]/30 dark:text-[#F5F0E8]/30" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="max-w-[1100px] mx-auto px-6 md:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10">
+
+        {/* Left: Form */}
+        <div>
+          <div className="bg-[#EDE8DF]/40 dark:bg-[#252220]/40 border border-[#C8A97E]/15 p-8 space-y-6">
+
+            {step === "info" && (
+              <>
+                <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">Contact Information</h2>
+                <InputField label="Email Address" value={form.email} onChange={v => update("email", v)} type="email" placeholder="hello@example.com" />
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField label="First Name" value={form.firstName} onChange={v => update("firstName", v)} />
+                  <InputField label="Last Name" value={form.lastName} onChange={v => update("lastName", v)} />
+                </div>
+              </>
+            )}
+
+            {step === "shipping" && (
+              <>
+                <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">Shipping Address</h2>
+                <InputField label="Street Address" value={form.address} onChange={v => update("address", v)} placeholder="123 Main Street" />
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField label="City" value={form.city} onChange={v => update("city", v)} />
+                  <InputField label="State / Province" value={form.state} onChange={v => update("state", v)} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField label="ZIP / Postal Code" value={form.zip} onChange={v => update("zip", v)} />
+                  <InputField label="Country" value={form.country} onChange={v => update("country", v)} />
+                </div>
+
+                {/* Shipping method */}
+                <div className="mt-8">
+                  <h3 className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8] mb-4">Shipping Method</h3>
+                  <div className="space-y-3">
+                    {shippingOptions.map(opt => (
+                      <label key={opt.id} className="flex items-start gap-3 p-4 border border-[#C8A97E]/20 cursor-pointer hover:border-[#C8A97E]/40 transition-colors">
+                        <div className={cn(
+                          "w-4 h-4 rounded-full border-2 mt-0.5 flex-shrink-0 transition-all",
+                          form.shipping === opt.id
+                            ? "border-[#C8A97E] bg-[#C8A97E]"
+                            : "border-[#C8A97E]/40"
+                        )}>
+                          <input
+                            type="radio"
+                            value={opt.id}
+                            checked={form.shipping === opt.id}
+                            onChange={() => update("shipping", opt.id)}
+                            className="sr-only"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between">
+                            <span className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">{opt.label}</span>
+                            <span className="font-accent text-sm text-[#C8A97E]">
+                              {opt.price === 0 ? "Free" : `$${opt.price}`}
+                            </span>
+                          </div>
+                          {opt.note && <p className="font-body text-xs text-[#1C1A17]/50 dark:text-[#F5F0E8]/50 mt-0.5">{opt.note}</p>}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {step === "payment" && (
+              <>
+                <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">Payment</h2>
+                <div className="flex items-center gap-2 text-[#1C1A17]/50 dark:text-[#F5F0E8]/50 text-xs font-accent mb-4">
+                  <Lock size={12} className="text-[#C8A97E]" />
+                  Your payment information is encrypted and secure.
+                </div>
+                <InputField label="Card Number" value={form.cardNumber} onChange={v => update("cardNumber", v)} placeholder="1234 5678 9012 3456" />
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField label="Expiry Date" value={form.expiry} onChange={v => update("expiry", v)} placeholder="MM / YY" />
+                  <InputField label="CVV" value={form.cvv} onChange={v => update("cvv", v)} placeholder="•••" />
+                </div>
+                <InputField label="Name on Card" value={form.cardName} onChange={v => update("cardName", v)} />
+              </>
+            )}
+
+            <button
+              onClick={handleNext}
+              className="w-full py-4 mt-4 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-sm tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"
+            >
+              {step === "payment" ? "Place Order" : "Continue"}
+            </button>
+          </div>
+        </div>
+
+        {/* Right: Order Summary */}
+        <div className="lg:sticky lg:top-8 self-start">
+          <div className="bg-[#EDE8DF]/40 dark:bg-[#252220]/40 border border-[#C8A97E]/15 p-6">
+            <h3 className="font-body font-500 text-[#1C1A17] dark:text-[#F5F0E8] mb-6">Order Summary</h3>
+
+            <div className="space-y-4 mb-6">
+              {cart.map(item => (
+                <div key={item.product.id} className="flex gap-3">
+                  <div className="relative">
+                    <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover" />
+                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] text-[10px] rounded-full flex items-center justify-center font-accent">
+                      {item.quantity}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8] leading-tight">{item.product.name}</p>
+                    <p className="font-accent text-xs text-[#1C1A17]/50 dark:text-[#F5F0E8]/50">{item.product.material}</p>
+                  </div>
+                  <p className="font-accent text-sm text-[#1C1A17] dark:text-[#F5F0E8]">
+                    ${(item.product.price * item.quantity).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <hr className="divider-gold border-t mb-4" />
+
+            {/* Promo */}
+            <div className="mb-4">
+              <button
+                onClick={() => setPromoOpen(!promoOpen)}
+                className="font-body text-xs text-[#C8A97E] underline underline-offset-2 hover:text-[#1C1A17] dark:hover:text-[#F5F0E8] transition-colors"
+              >
+                {promoOpen ? "Hide promo code" : "Have a promo code?"}
+              </button>
+              {promoOpen && (
+                <div className="flex gap-2 mt-3">
+                  <input
+                    value={promoCode}
+                    onChange={e => { setPromoCode(e.target.value); setPromoError(false); }}
+                    placeholder="Enter code"
+                    className="flex-1 h-9 px-3 bg-[#F5F0E8] dark:bg-[#1C1A17] border border-[#C8A97E]/30 font-accent text-xs text-[#1C1A17] dark:text-[#F5F0E8] placeholder-[#1C1A17]/30 dark:placeholder-[#F5F0E8]/30 outline-none"
+                  />
+                  <button
+                    onClick={handlePromo}
+                    className="px-4 h-9 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-accent text-xs hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"
+                  >
+                    Apply
+                  </button>
+                </div>
+              )}
+              {promoApplied && (
+                <p className="font-accent text-xs text-green-600 mt-1 flex items-center gap-1">
+                  <Check size={11} /> Code applied — 10% off
+                </p>
+              )}
+              {promoError && (
+                <p className="font-accent text-xs text-red-500 mt-1">Invalid code. Try "FORMA10"</p>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between font-accent text-sm text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
+                <span>Subtotal</span>
+                <span>${cartTotal.toLocaleString()}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between font-accent text-sm text-green-600">
+                  <span>Discount (10%)</span>
+                  <span>–${discount.toFixed(0)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-accent text-sm text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
+                <span>Shipping</span>
+                <span>{shippingCost === 0 ? "Free" : `$${shippingCost}`}</span>
+              </div>
+              <hr className="divider-gold border-t" />
+              <div className="flex justify-between font-accent font-600 text-base text-[#1C1A17] dark:text-[#F5F0E8]">
+                <span>Total</span>
+                <span>${total.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
