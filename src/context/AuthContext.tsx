@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { googleLogout } from "@react-oauth/google";
 import {
   login as apiLogin,
   register as apiRegister,
@@ -6,6 +7,9 @@ import {
   getCurrentUser,
   getUser,
   isAuthenticated,
+  api,
+  isLoggingOut,
+  setLoggingOut,
   type User,
   type LoginRequest,
   type RegisterRequest,
@@ -41,12 +45,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("Got user:", currentUser);
       setUser(currentUser);
       setIsAuthenticated(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Auth check failed:", error);
-      setUser(null);
-      setIsAuthenticated(false);
+      if (error?.response?.status === 401) {
+        console.log("User not logged in (401) - this is expected");
+        setUser(null);
+        setIsAuthenticated(false);
+      } else {
+        console.log("Other error, keeping current auth state");
+      }
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -66,9 +76,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    apiLogout();
+    googleLogout();
+    localStorage.removeItem("auth_user");
+    setLoggingOut();
+    try {
+      api.post("/auth/logout", {}, { _skipAuthCheck: true } as any);
+    } catch {
+      // Ignore
+    }
     setUser(null);
     setIsAuthenticated(false);
+    window.location.href = "/";
   };
 
   return (

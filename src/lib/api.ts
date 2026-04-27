@@ -3,6 +3,7 @@ import axios, { AxiosError, type AxiosRequestConfig, InternalAxiosRequestConfig 
 declare module "axios" {
   export interface InternalAxiosRequestConfig {
     _retry?: boolean;
+    _skipAuthCheck?: boolean;
   }
 }
 
@@ -16,12 +17,24 @@ const api = axios.create({
   },
 });
 
+export let isLoggingOut = false;
+
+export function resetLoggingOut() {
+  isLoggingOut = false;
+}
+
+export function setLoggingOut() {
+  isLoggingOut = true;
+}
+
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      logout();
-      window.location.href = "/login";
+    const config = error.config as InternalAxiosRequestConfig & { _skipAuthCheck?: boolean };
+    if (error.response?.status === 401 && !isLoggingOut && !config?._skipAuthCheck) {
+      isLoggingOut = true;
+      localStorage.removeItem("auth_user");
+      window.location.href = "/";
     }
     return Promise.reject(error);
   }
@@ -81,13 +94,18 @@ export async function googleAuth(credential: string): Promise<AuthResponse> {
 }
 
 export async function getCurrentUser(): Promise<User> {
-  const { data } = await api.get<User>("/auth/me");
+  const { data } = await api.get<User>("/auth/me", { _skipAuthCheck: true } as any);
   return data;
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
   localStorage.removeItem("auth_user");
-  api.post("/auth/logout").catch(() => {});
+  isLoggingOut = true;
+  try {
+    await api.post("/auth/logout", {}, { _skipAuthCheck: true } as any);
+  } catch {
+    // Ignore - we're logging out anyway
+  }
 }
 
 export function getUser(): User | null {
