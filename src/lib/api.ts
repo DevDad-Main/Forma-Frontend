@@ -18,22 +18,11 @@ const api = axios.create({
 
 api.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      try {
-        await api.post("/auth/refresh", {}, { withCredentials: true });
-        return api(originalRequest);
-      } catch (refreshError) {
-        logout();
-        window.location.href = "/login";
-        return Promise.reject(refreshError);
-      }
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      logout();
+      window.location.href = "/login";
     }
-    
     return Promise.reject(error);
   }
 );
@@ -51,7 +40,8 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface AuthResponse {

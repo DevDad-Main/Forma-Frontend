@@ -1,0 +1,48 @@
+// Here's how to pass HttpServletResponse from controller to service:
+
+// CONTROLLER - Add @RequestBody and HttpServletResponse parameter
+@PostMapping("/register")
+public ResponseEntity<UserResponse> registerUser(
+    @RequestBody UserRegisterResponse request,
+    HttpServletResponse response
+) {
+    User user = authService.registerUser(request, response);
+    return new ResponseEntity<>(toUserResponse(user), HttpStatus.CREATED);
+}
+
+// SERVICE - Accept HttpServletResponse as parameter
+public User registerUser(UserRegisterResponse request, HttpServletResponse response) {
+    // 1. First check if email exists
+    if (userRepository.findByEmail(request.email()).isPresent()) {
+        throw new EmailAlreadyExistsException(request.email());
+    }
+
+    // 2. Create and SAVE user first (to get the ID)
+    User user = new User();
+    user.setEmail(request.email());
+    user.setFirstName(request.firstName());
+    user.setLastName(request.lastName());
+    user.setPassword(securityConfig.passwordEncoder().encode(request.password()));
+    user = userRepository.save(user);  // <-- Save FIRST to get ID
+
+    // 3. NOW generate JWT using the saved user's ID
+    String token = jwtService.generateToken(String.valueOf(user.getId()));
+
+    // 4. Create and set the cookie
+    ResponseCookie cookie = ResponseCookie.from("jwt", token)
+        .httpOnly(true)
+        .secure(false)  // true in production
+        .path("/")
+        .maxAge(24 * 60 * 60)
+        .sameSite("Lax")
+        .build();
+
+    response.setHeader("Set-Cookie", cookie.toString());
+
+    return user;
+}
+
+// KEY POINTS:
+// 1. Save user FIRST (userRepository.save) to get the ID
+// 2. THEN generate JWT with that ID
+// 3. Pass HttpServletResponse from controller to service

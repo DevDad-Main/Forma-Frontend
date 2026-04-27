@@ -23,7 +23,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         await login({ email, password });
         toast.success("Welcome back!");
       } else {
-        await register({ email, password, name });
+        await register({ email, password, firstName, lastName });
         toast.success("Account created!");
       }
       onOpenChange(false);
@@ -57,7 +58,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const resetForm = () => {
     setEmail("");
     setPassword("");
-    setName("");
+    setFirstName("");
+    setLastName("");
   };
 
   const toggleMode = () => {
@@ -82,16 +84,29 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "register" && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    placeholder="John"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Doe"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
             )}
             
