@@ -182,6 +182,11 @@ export async function getAdminProducts(): Promise<Product[]> {
   return data;
 }
 
+export async function seedProducts(products: Product[]): Promise<Product[]> {
+  const { data } = await api.post<Product[]>("/admin/products/seed", products);
+  return data;
+}
+
 export function getUser(): User | null {
   return getStoredUser();
 }

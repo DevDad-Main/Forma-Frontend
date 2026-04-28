@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft, Database } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AdminProductForm } from "@/components/admin/AdminProductForm";
 import { useAuth } from "@/context/AuthContext";
-import { getAdminProducts, createProduct, updateProduct, deleteProduct, type Product } from "@/lib/api";
+import { getAdminProducts, createProduct, updateProduct, deleteProduct, seedProducts, type Product } from "@/lib/api";
+import { products as dummyProducts } from "@/data/products";
 import { toast } from "sonner";
 
 export default function AdminProductsPage() {
@@ -14,6 +15,7 @@ export default function AdminProductsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [seedLoading, setSeedLoading] = useState(false);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -62,6 +64,20 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleSeed = async () => {
+    if (!confirm("This will add all dummy products to the database. Continue?")) return;
+    setSeedLoading(true);
+    try {
+      await seedProducts(dummyProducts as Product[]);
+      toast.success("Dummy products seeded successfully");
+      await loadProducts();
+    } catch (error) {
+      toast.error("Failed to seed products");
+    } finally {
+      setSeedLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F0E8] dark:bg-[#1C1A17]">
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 py-16">
@@ -83,16 +99,26 @@ export default function AdminProductsPage() {
             </div>
           </div>
           {!showForm && (
-            <Button
-              onClick={() => {
-                setEditingProduct(null);
-                setShowForm(true);
-              }}
-              className="bg-[#1C1A17] hover:bg-[#1C1A17]/90"
-            >
-              <Plus size={18} className="mr-2" />
-              Add Product
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleSeed}
+                variant="outline"
+                disabled={seedLoading}
+              >
+                <Database size={18} className="mr-2" />
+                {seedLoading ? "Seeding..." : "Seed Dummy Products"}
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditingProduct(null);
+                  setShowForm(true);
+                }}
+                className="bg-[#1C1A17] hover:bg-[#1C1A17]/90"
+              >
+                <Plus size={18} className="mr-2" />
+                Add Product
+              </Button>
+            </div>
           )}
         </div>
 
