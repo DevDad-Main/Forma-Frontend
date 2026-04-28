@@ -73,6 +73,21 @@ export interface User {
   lastName?: string;
   name?: string;
   picture?: string;
+  address?: Address;
+}
+
+export interface Address {
+  id?: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateAddressRequest {
+  address: Address;
 }
 
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {
@@ -106,6 +121,26 @@ export async function logout(): Promise<void> {
   } catch {
     // Ignore - we're logging out anyway
   }
+}
+
+export async function updateAddress(address: Address): Promise<Address> {
+  const { data } = await api.put<Address>("/auth/address", address);
+  return data;
+}
+
+export async function createAddress(address: Address): Promise<Address> {
+  const { data } = await api.post<Address>("/auth/address", address);
+  return data;
+}
+
+export async function deleteAddress(id: string): Promise<boolean> {
+  const { data } = await api.delete<boolean>(`/auth/address/${id}`);
+  return data;
+}
+
+export async function getAddresses(): Promise<Address[]> {
+  const { data } = await api.get<Address[]>("/auth/address");
+  return data;
 }
 
 export function getUser(): User | null {

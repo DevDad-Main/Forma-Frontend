@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronDown, ArrowUpRight } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useStore } from "@/context/StoreContext";
 import { products, collections } from "@/data/products";
 import ProductCard from "@/components/products/ProductCard";
@@ -45,7 +45,9 @@ export default function HomePage() {
     target: heroRef,
     offset: ["start start", "end start"],
   });
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
+  const heroYRaw = useTransform(scrollYProgress, [0, 1], [0, 0.4]);
+  const heroYSpring = useSpring(heroYRaw, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const heroY = useTransform(heroYSpring, (v) => `${v * 100}%`);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();

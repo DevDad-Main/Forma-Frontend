@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Package, Heart, Settings, LogOut, Camera, Save } from "lucide-react";
+import { User, Package, Heart, Settings, LogOut, Camera, Save, MapPin, Plus, Pencil, Trash } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { api } from "@/lib/api";
+import { api, updateAddress, createAddress, deleteAddress, getAddresses, type Address } from "@/lib/api";
+import { AddressForm } from "@/components/profile/AddressForm";
 import { cn } from "@/lib/utils";
 
 interface Order {
@@ -25,7 +26,7 @@ interface UserProfile {
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"profile" | "orders" | "settings">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "orders" | "addresses" | "settings">("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -34,6 +35,9 @@ export default function ProfilePage() {
     lastName: "",
     email: "",
   });
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -77,8 +81,25 @@ export default function ProfilePage() {
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
     { id: "orders", label: "Orders", icon: Package },
+    { id: "addresses", label: "Addresses", icon: MapPin },
     { id: "settings", label: "Settings", icon: Settings },
   ];
+
+  const loadAddresses = async () => {
+    try {
+      const addrs = await getAddresses();
+      setAddresses(addrs || []);
+    } catch (error) {
+      console.error("Failed to load addresses", error);
+      setAddresses([]);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "addresses") {
+      loadAddresses();
+    }
+  }, [activeTab]);
 
   return (
     <div className="bg-[#F5F0E8] dark:bg-[#1C1A17] min-h-screen pt-16">
@@ -120,7 +141,7 @@ export default function ProfilePage() {
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as "profile" | "orders" | "settings")}
+                    onClick={() => setActiveTab(tab.id as "profile" | "orders" | "addresses" | "settings")}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
                       activeTab === tab.id
@@ -271,6 +292,110 @@ export default function ProfilePage() {
                             ${order.total.toLocaleString()}
                           </p>
                           <p className="text-sm text-[#C8A97E]">{order.status}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "addresses" && (
+              <div className="bg-[#EDE8DF] dark:bg-[#252220] rounded-lg p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">
+                    Shipping Addresses
+                  </h2>
+                  {!showAddressForm && addresses.length < 3 && (
+                    <button
+                      onClick={() => {
+                        setEditingAddress(null);
+                        setShowAddressForm(true);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-body text-[#1C1A17] dark:text-[#F5F0E8] border border-[#C8A97E] rounded hover:bg-[#C8A97E]/10 transition-colors"
+                    >
+                      <Plus size={16} />
+                      Add Address
+                    </button>
+                  )}
+                </div>
+
+                {showAddressForm ? (
+                  <div className="bg-[#F5F0E8] dark:bg-[#1C1A17] rounded-lg p-6">
+                    <h3 className="font-display text-xl font-light text-[#1C1A17] dark:text-[#F5F0E8] mb-6">
+                      {editingAddress ? "Edit Address" : "New Address"}
+                    </h3>
+                    <AddressForm
+                      address={editingAddress}
+                      onSave={async (address) => {
+                        if (editingAddress?.id) {
+                          await updateAddress(address);
+                        } else {
+                          await createAddress(address);
+                        }
+                        setShowAddressForm(false);
+                        setEditingAddress(null);
+                        await loadAddresses();
+                      }}
+                      onCancel={() => {
+                        setShowAddressForm(false);
+                        setEditingAddress(null);
+                      }}
+                    />
+                  </div>
+                ) : addresses.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MapPin className="w-16 h-16 text-[#C8A97E]/30 mx-auto mb-4" />
+                    <p className="font-body text-lg text-[#1C1A17]/60">No addresses saved</p>
+                    <button
+                      onClick={() => setShowAddressForm(true)}
+                      className="inline-block mt-4 px-6 py-3 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] rounded font-body text-sm"
+                    >
+                      Add Address
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {addresses.map((addr, index) => (
+                      <div
+                        key={addr.id || index}
+                        className="flex items-start justify-between p-4 bg-[#F5F0E8] dark:bg-[#1C1A17] rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            {addr.isDefault && (
+                              <span className="px-2 py-0.5 bg-[#C8A97E] text-[#1C1A17] text-xs font-body rounded">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">{addr.street}</p>
+                          <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">
+                            {addr.city}, {addr.state} {addr.zipCode}
+                          </p>
+                          <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">{addr.country}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingAddress(addr);
+                              setShowAddressForm(true);
+                            }}
+                            className="p-2 text-[#1C1A17]/60 hover:text-[#C8A97E] transition-colors"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (addr.id && confirm("Delete this address?")) {
+                                await deleteAddress(addr.id);
+                                await loadAddresses();
+                              }
+                            }}
+                            className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            <Trash size={16} />
+                          </button>
                         </div>
                       </div>
                     ))}

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -7,8 +7,12 @@ import { useAuth } from "@/context/AuthContext";
 export default function OAuthCallback() {
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+
     checkAuth().then(() => {
       toast.success("Welcome!");
       navigate("/profile");
