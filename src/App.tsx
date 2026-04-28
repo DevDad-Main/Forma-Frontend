@@ -12,6 +12,8 @@ import CheckoutPage from "@/pages/CheckoutPage";
 import WishlistPage from "@/pages/WishlistPage";
 import ProfilePage from "@/pages/ProfilePage";
 import OAuthCallback from "@/pages/OAuthCallback";
+import AdminRoute from "@/components/admin/AdminRoute";
+import AdminProductsPage from "@/pages/admin/AdminProductsPage";
 
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -45,6 +47,14 @@ function App() {
               <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/login/oauth2/code/google" element={<OAuthCallback />} />
+              <Route
+                path="/admin/products"
+                element={
+                  <AdminRoute>
+                    <AdminProductsPage />
+                  </AdminRoute>
+                }
+              />
             </Routes>
           </Layout>
         </Suspense>

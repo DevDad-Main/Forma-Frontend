@@ -73,7 +73,26 @@ export interface User {
   lastName?: string;
   name?: string;
   picture?: string;
+  role?: string;
   address?: Address;
+}
+
+export interface Product {
+  id?: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  hoverImage?: string;
+  category: string;
+  material?: string;
+  color?: string;
+  description?: string;
+  dimensions?: string;
+  tags?: string[];
+  inStock?: boolean;
+  isBestSeller?: boolean;
+  isNew?: boolean;
 }
 
 export interface Address {
@@ -140,6 +159,26 @@ export async function deleteAddress(id: string): Promise<boolean> {
 
 export async function getAddresses(): Promise<Address[]> {
   const { data } = await api.get<Address[]>("/auth/address");
+  return data;
+}
+
+export async function createProduct(product: Product): Promise<Product> {
+  const { data } = await api.post<Product>("/admin/products", product);
+  return data;
+}
+
+export async function updateProduct(id: string, product: Product): Promise<Product> {
+  const { data } = await api.put<Product>(`/admin/products/${id}`, product);
+  return data;
+}
+
+export async function deleteProduct(id: string): Promise<boolean> {
+  const { data } = await api.delete<boolean>(`/admin/products/${id}`);
+  return data;
+}
+
+export async function getAdminProducts(): Promise<Product[]> {
+  const { data } = await api.get<Product[]>("/admin/products");
   return data;
 }
 
