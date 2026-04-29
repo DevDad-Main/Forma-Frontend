@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api, updateAddress, createAddress, deleteAddress, getAddresses, type Address } from "@/lib/api";
 import { AddressForm } from "@/components/profile/AddressForm";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Order {
   id: string;
@@ -24,7 +25,7 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, checkAuth } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"profile" | "orders" | "addresses" | "settings">("profile");
   const [isEditing, setIsEditing] = useState(false);
@@ -60,9 +61,21 @@ export default function ProfilePage() {
     setLoading(true);
     try {
       await api.put("/auth/profile", formData);
+      // Refresh user data from backend
+      await checkAuth();
+      // Update local profile state
+      if (user) {
+        setProfile({
+          ...profile!,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        });
+      }
       setIsEditing(false);
+      toast.success("Profile updated successfully");
     } catch (error) {
       console.error("Failed to update profile", error);
+      toast.error("Failed to update profile");
     } finally {
       setLoading(false);
     }

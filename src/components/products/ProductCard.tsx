@@ -16,7 +16,6 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
   const { addToCart, toggleWishlist, wishlist } = useStore();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [hovered, setHovered] = useState(false);
   const [heartAnim, setHeartAnim] = useState(false);
   const isWishlisted = wishlist.includes(product.id.toString());
 
@@ -43,22 +42,17 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
   return (
     <div
       className="group cursor-pointer"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       onClick={() => navigate(`/product/${product.id}`)}
     >
-      {/* Image */}
+       {/* Image */}
       <div className="relative overflow-hidden bg-[#EDE8DF] dark:bg-[#252220] aspect-[4/5]">
         {/* Primary image */}
         <img
           src={product.image}
           alt={product.name}
-          className={cn(
-            "w-full h-full object-cover transition-all duration-500",
-            hovered && product.hoverImage ? "opacity-0 scale-[1.01]" : "opacity-100 scale-100"
-          )}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
         />
-        {/* Hover image */}
+        {/* Hover image - COMMENTED OUT: Requires additional product images
         {product.hoverImage && (
           <img
             src={product.hoverImage}
@@ -68,7 +62,7 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
               hovered ? "opacity-100 scale-[1.01]" : "opacity-0 scale-100"
             )}
           />
-        )}
+        )} */}
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -111,10 +105,7 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
         {/* Quick Add */}
         {product.inStock && (
           <div
-            className={cn(
-              "absolute bottom-0 left-0 right-0 transition-all duration-300",
-              hovered ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
-            )}
+            className="absolute bottom-0 left-0 right-0 transition-all duration-300 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
           >
             <button
               onClick={handleAddToCart}

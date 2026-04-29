@@ -6,6 +6,14 @@ import { useStore } from "@/context/StoreContext";
 // import { products, collections } from "@/data/products";
 import { getProducts, type Product } from "@/lib/api";
 import ProductCard from "@/components/products/ProductCard";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 // const bestSellers = products.filter(p => p.isBestSeller);
 // const newArrivals = products.filter(p => p.isNew);
@@ -43,6 +51,9 @@ export default function HomePage() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const autoplayPlugin = useRef(
+    Autoplay({ delay: 2000, stopOnInteraction: false })
+  );
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -187,36 +198,48 @@ export default function HomePage() {
       <hr className="divider-gold border-t max-w-[1440px] mx-auto px-16" />
 
       {/* ─── BEST SELLERS ─── */}
-      <section className="py-24 md:py-32">
-        <AnimSection className="px-6 md:px-16 max-w-[1440px] mx-auto mb-12">
-          <div className="flex items-end justify-between">
+      <section className="py-16 md:py-20">
+        <AnimSection className="px-6 md:px-16 max-w-[1440px] mx-auto mb-8">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="font-accent text-xs tracking-[0.25em] uppercase text-[#C8A97E] mb-3">Best Sellers</p>
-              <h2 className="font-display text-5xl md:text-6xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">
+              <p className="font-accent text-[11px] tracking-[0.2em] uppercase text-[#C8A97E] mb-2">Best Sellers</p>
+              <h2 className="font-display text-3xl md:text-4xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">
                 Most loved
               </h2>
             </div>
-            <Link
-              to="/shop"
-              className="hidden md:flex items-center gap-2 font-body text-sm text-[#1C1A17] dark:text-[#F5F0E8] hover:text-[#C8A97E] dark:hover:text-[#C8A97E] transition-colors underline underline-offset-4"
-            >
-              Shop all <ArrowUpRight size={14} />
-            </Link>
           </div>
         </AnimSection>
 
-        {/* Horizontal scroll carousel */}
-        <div className="px-6 md:px-16">
-          <div className="flex gap-6 overflow-x-auto no-scrollbar pb-4">
-            {bestSellers.concat(products.slice(0, 4)).map((product, i) => (
-              <AnimSection
-                key={`${product.id}-${i}`}
-                className="min-w-[260px] md:min-w-[300px] flex-shrink-0"
-              >
-                <ProductCard product={product} />
-              </AnimSection>
-            ))}
-          </div>
+        <div className="px-6 md:px-16 max-w-[1440px] mx-auto relative">
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            plugins={[autoplayPlugin.current]}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {bestSellers.concat(products.slice(0, 4)).map((product, i) => (
+                <CarouselItem key={`${product.id}-${i}`} className="pl-4 basis-[260px] md:basis-[300px]">
+                  <ProductCard product={product} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="hidden md:flex items-center gap-2 absolute -top-14 right-16">
+              <CarouselPrevious className="relative -left-0 top-0 translate-y-0 h-9 w-9 rounded-full border-[#C8A97E]/30 hover:border-[#C8A97E] hover:bg-transparent" />
+              <CarouselNext className="relative -right-0 top-0 translate-y-0 h-9 w-9 rounded-full border-[#C8A97E]/30 hover:border-[#C8A97E] hover:bg-transparent" />
+            </div>
+          </Carousel>
+        </div>
+
+        <div className="px-6 md:px-16 max-w-[1440px] mx-auto mt-6 md:hidden">
+          <Link
+            to="/shop"
+            className="flex items-center gap-2 font-body text-sm text-[#1C1A17] dark:text-[#F5F0E8] hover:text-[#C8A97E] dark:hover:text-[#C8A97E] transition-colors"
+          >
+            Shop all <ArrowUpRight size={14} />
+          </Link>
         </div>
       </section>
 
