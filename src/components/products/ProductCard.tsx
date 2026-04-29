@@ -18,7 +18,7 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
   const [heartAnim, setHeartAnim] = useState(false);
-  const isWishlisted = wishlist.includes(product.id);
+  const isWishlisted = wishlist.includes(product.id.toString());
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();

@@ -1,4 +1,8 @@
-import axios, { AxiosError, type AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  type AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from "axios";
 
 declare module "axios" {
   export interface InternalAxiosRequestConfig {
@@ -7,7 +11,8 @@ declare module "axios" {
   }
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -30,14 +35,24 @@ export function setLoggingOut() {
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    const config = error.config as InternalAxiosRequestConfig & { _skipAuthCheck?: boolean };
-    if (error.response?.status === 401 && !isLoggingOut && !config?._skipAuthCheck) {
+    const config = error.config as InternalAxiosRequestConfig & {
+      _skipAuthCheck?: boolean;
+    };
+    const url = config?.url || "";
+    // Don't redirect for wishlist endpoints (they may return 401 if not authenticated)
+    const isWishlistEndpoint = url.includes("/wishlist");
+    if (
+      error.response?.status === 401 &&
+      !isLoggingOut &&
+      !config?._skipAuthCheck &&
+      !isWishlistEndpoint
+    ) {
       isLoggingOut = true;
       localStorage.removeItem("auth_user");
       window.location.href = "/";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 const getStoredUser = (): User | null => {
@@ -128,7 +143,9 @@ export async function googleAuth(credential: string): Promise<AuthResponse> {
 }
 
 export async function getCurrentUser(): Promise<User> {
-  const { data } = await api.get<User>("/auth/me", { _skipAuthCheck: true } as any);
+  const { data } = await api.get<User>("/auth/me", {
+    _skipAuthCheck: true,
+  } as any);
   return data;
 }
 
@@ -167,7 +184,10 @@ export async function createProduct(product: Product): Promise<Product> {
   return data;
 }
 
-export async function updateProduct(id: string, product: Product): Promise<Product> {
+export async function updateProduct(
+  id: string,
+  product: Product,
+): Promise<Product> {
   const { data } = await api.put<Product>(`/admin/products/${id}`, product);
   return data;
 }
@@ -205,6 +225,34 @@ export function isAuthenticated(): boolean {
   // Just check if we have a JWT cookie - the backend will verify on requests
   // We don't store user in localStorage for security
   return true;
+}
+
+export interface Wishlist {
+  id?: string;
+  userId?: string;
+  products: string[];
+}
+
+// export async function getWishlist(): Promise<Wishlist> {
+//   const { data } = await api.get<Wishlist>("/wishlist");
+//   console.log(data);
+//   return data;
+// }
+
+export async function getWishlist(): Promise<Product[]> {
+  const { data } = await api.get<Product[]>("/wishlist");
+  console.log(data);
+  return data;
+}
+
+export async function addToWishlist(productId: string): Promise<Product[]> {
+  const { data } = await api.post<Product[]>(`/wishlist/add/${productId}`);
+  return data;
+}
+
+export async function removeFromWishlist(productId: string): Promise<Product[]> {
+  const { data } = await api.delete<Product[]>(`/wishlist/remove/${productId}`);
+  return data;
 }
 
 export { api };
