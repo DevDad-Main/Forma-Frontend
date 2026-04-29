@@ -23,16 +23,22 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Only load products for search if authenticated
+    if (!isAuthenticated) return;
+    
     const loadProducts = async () => {
       try {
         const data = await getProducts();
         setProducts(data || []);
-      } catch (error) {
-        console.error("Failed to load products for search", error);
+      } catch (error: any) {
+        // Only log if not a 401 error
+        if (error?.response?.status !== 401) {
+          console.error("Failed to load products for search", error);
+        }
       }
     };
     loadProducts();
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);

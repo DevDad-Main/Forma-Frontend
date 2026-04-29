@@ -9,6 +9,7 @@ import {
   getWishlist,
   addToWishlist,
   removeFromWishlist,
+  isAuthenticated,
   type Wishlist,
 } from "@/lib/api";
 
@@ -67,16 +68,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const [cartOpen, setCartOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Load wishlist from backend on mount
+  // Load wishlist from backend on mount - only if authenticated
   useEffect(() => {
     const loadWishlist = async () => {
+      // Don't try to load wishlist if not authenticated
+      if (!isAuthenticated()) {
+        return;
+      }
       try {
         const data = await getWishlist();
         // Backend returns Product[], extract IDs
         const productIds = data.map((p: any) => p.id.toString());
         setWishlist(productIds);
-      } catch (error) {
-        console.error("Failed to load wishlist", error);
+      } catch (error: any) {
+        // Only log if it's not a 401 error
+        if (error?.response?.status !== 401) {
+          console.error("Failed to load wishlist", error);
+        }
       }
     };
     loadWishlist();

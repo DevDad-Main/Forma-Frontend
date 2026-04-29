@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { googleLogout } from "@react-oauth/google";
 import {
   login as apiLogin,
@@ -37,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const checkIntervalRef = useRef<number | null>(null);
 
   const checkAuth = useCallback(async () => {
     try {
@@ -51,6 +52,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("User not logged in (401) - this is expected");
         setUser(null);
         setIsAuthenticated(false);
+        // Stop checking auth when not authenticated
+        if (checkIntervalRef.current) {
+          clearInterval(checkIntervalRef.current);
+          checkIntervalRef.current = null;
+        }
       } else {
         console.log("Other error, keeping current auth state");
       }
@@ -61,7 +67,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    
+    // Set up periodic auth check (every 30 seconds)
+    checkIntervalRef.current = window.setInterval(() => {
+      if (isAuthenticated) {
+        checkAuth();
+      }
+    }, 30000);
+    
+    return () => {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+      }
+    };
+  }, [checkAuth, isAuthenticated]);
 
   const login = async (credentials: LoginRequest) => {
     const response = await apiLogin(credentials);

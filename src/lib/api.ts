@@ -222,9 +222,9 @@ export function getUser(): User | null {
 }
 
 export function isAuthenticated(): boolean {
-  // Just check if we have a JWT cookie - the backend will verify on requests
-  // We don't store user in localStorage for security
-  return true;
+  // Check if we have a JWT cookie by looking for it
+  const cookies = document.cookie;
+  return cookies.includes("jwt=") || cookies.includes("JSESSIONID=");
 }
 
 export interface Wishlist {
