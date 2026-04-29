@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronDown, ChevronUp, X, SlidersHorizontal, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
-import { products } from "@/data/products";
+// import { products } from "@/data/products";
+import { getProducts, type Product } from "@/lib/api";
 import ProductCard from "@/components/products/ProductCard";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,22 @@ export default function ShopPage() {
   const [sidebarSections, setSidebarSections] = useState({
     category: true, price: true, material: true, color: true
   });
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data || []);
+      } catch (error) {
+        console.error("Failed to load products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
 
   const toggleSection = (key: keyof typeof sidebarSections) => {
     setSidebarSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -67,7 +84,7 @@ export default function ShopPage() {
       case "popular": return list.sort((a, b) => (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0));
       default: return list.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
     }
-  }, [selectedCategory, selectedMaterials, selectedColors, priceRange, sortBy]);
+  }, [products, selectedCategory, selectedMaterials, selectedColors, priceRange, sortBy]);
 
   const FilterContent = () => (
     <div className="space-y-0">
@@ -257,18 +274,26 @@ export default function ShopPage() {
         {/* Product grid */}
         <main className="flex-1 px-6 md:px-10 py-8">
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {filtered.map((product, i) => (
-              <div
-                key={product.id}
-                style={{ animationDelay: `${i * 50}ms` }}
-                className="fade-in-up"
-              >
-                <ProductCard product={product} />
-              </div>
-            ))}
+            {loading ? (
+              Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} style={{ animationDelay: `${i * 50}ms` }} className="fade-in-up">
+                  <SkeletonCard />
+                </div>
+              ))
+            ) : (
+              filtered.map((product, i) => (
+                <div
+                  key={product.id}
+                  style={{ animationDelay: `${i * 50}ms` }}
+                  className="fade-in-up"
+                >
+                  <ProductCard product={product} />
+                </div>
+              ))
+            )}
           </div>
 
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div className="py-24 text-center">
               <p className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8] mb-3">No pieces found</p>
               <p className="font-body text-sm text-[#1C1A17]/50 dark:text-[#F5F0E8]/50">Try adjusting your filters.</p>

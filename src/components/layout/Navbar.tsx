@@ -4,7 +4,8 @@ import { Search, Heart, ShoppingBag, X, Menu, User, LogOut } from "lucide-react"
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
-import { products } from "@/data/products";
+// import { products } from "@/data/products";
+import { getProducts, type Product } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export default function Navbar() {
@@ -17,8 +18,21 @@ export default function Navbar() {
   const [cartBounce, setCartBounce] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
   const prevCartCount = useRef(cartCount);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data || []);
+      } catch (error) {
+        console.error("Failed to load products for search", error);
+      }
+    };
+    loadProducts();
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);

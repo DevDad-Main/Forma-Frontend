@@ -78,19 +78,19 @@ export interface User {
 }
 
 export interface Product {
-  id?: string;
+  id: string;
   name: string;
   price: number;
   originalPrice?: number;
   image: string;
   hoverImage?: string;
   category: string;
-  material?: string;
-  color?: string;
-  description?: string;
+  material: string;
+  color: string;
+  description: string;
   dimensions?: string;
   tags?: string[];
-  inStock?: boolean;
+  inStock: boolean;
   isBestSeller?: boolean;
   isNew?: boolean;
 }
@@ -179,6 +179,16 @@ export async function deleteProduct(id: string): Promise<boolean> {
 
 export async function getAdminProducts(): Promise<Product[]> {
   const { data } = await api.get<Product[]>("/admin/products");
+  return data;
+}
+
+export async function getProducts(): Promise<Product[]> {
+  const { data } = await api.get<Product[]>("/products");
+  return data;
+}
+
+export async function getProduct(id: string): Promise<Product> {
+  const { data } = await api.get<Product>(`/products/${id}`);
   return data;
 }
 

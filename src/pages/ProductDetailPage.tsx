@@ -4,9 +4,10 @@ import {
   Heart, Minus, Plus, ChevronDown, ChevronUp, ArrowLeft,
   ZoomIn, X, ChevronLeft, ChevronRight, ShoppingBag
 } from "lucide-react";
-import { products } from "@/data/products";
+// import { products } from "@/data/products";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
+import { getProduct, getProducts, type Product } from "@/lib/api";
 import ProductCard from "@/components/products/ProductCard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -24,8 +25,31 @@ export default function ProductDetailPage() {
   const { addToCart, toggleWishlist, wishlist } = useStore();
   const { isAuthenticated } = useAuth();
 
-  const product = products.find(p => p.id === id);
-  const related = products.filter(p => p.id !== id && p.category === product?.category).slice(0, 4);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [related, setRelated] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!id) return;
+      setLoading(true);
+      try {
+        const data = await getProduct(id);
+        setProduct(data);
+        // Load related products
+        const allProducts = await getProducts();
+        const relatedProducts = allProducts
+          .filter(p => p.id !== id && p.category === data?.category)
+          .slice(0, 4);
+        setRelated(relatedProducts);
+      } catch (error) {
+        console.error("Failed to load product", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProduct();
+  }, [id]);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -52,6 +76,16 @@ export default function ProductDetailPage() {
     if (ctaRef.current) obs.observe(ctaRef.current);
     return () => obs.disconnect();
   }, [product]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F5F0E8] dark:bg-[#1C1A17] flex items-center justify-center pt-16">
+        <div className="text-center">
+          <p className="font-display text-4xl font-light text-[#1C1A17] dark:text-[#F5F0E8] mb-4">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (

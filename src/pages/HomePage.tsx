@@ -3,11 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronDown, ArrowUpRight } from "lucide-react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useStore } from "@/context/StoreContext";
-import { products, collections } from "@/data/products";
+// import { products, collections } from "@/data/products";
+import { getProducts, type Product } from "@/lib/api";
 import ProductCard from "@/components/products/ProductCard";
 
-const bestSellers = products.filter(p => p.isBestSeller);
-const newArrivals = products.filter(p => p.isNew);
+// const bestSellers = products.filter(p => p.isBestSeller);
+// const newArrivals = products.filter(p => p.isNew);
+import { collections } from "@/data/products";
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -40,6 +42,7 @@ export default function HomePage() {
   const { addToCart } = useStore();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -48,6 +51,21 @@ export default function HomePage() {
   const heroYRaw = useTransform(scrollYProgress, [0, 1], [0, 0.4]);
   const heroYSpring = useSpring(heroYRaw, { stiffness: 100, damping: 30, restDelta: 0.001 });
   const heroY = useTransform(heroYSpring, (v) => `${v * 100}%`);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data || []);
+      } catch (error) {
+        console.error("Failed to load products", error);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  const bestSellers = products.filter(p => p.isBestSeller);
+  const newArrivals = products.filter(p => p.isNew);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();

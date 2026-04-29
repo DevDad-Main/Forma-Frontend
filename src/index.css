@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,700&family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,700&family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -73,35 +73,36 @@
     box-sizing: border-box;
   }
   html {
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
   }
   body {
-    font-family: 'Outfit', sans-serif;
-    background-color: #F5F0E8;
-    color: #1C1A17;
+    font-family: "Outfit", sans-serif;
+    background-color: #f5f0e8;
+    color: #1c1a17;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  .dark body, .dark {
-    background-color: #1C1A17;
-    color: #F5F0E8;
+  .dark body,
+  .dark {
+    background-color: #1c1a17;
+    color: #f5f0e8;
   }
 }
 
 /* Typography */
 .font-display {
-  font-family: 'Fraunces', serif;
+  font-family: "Fraunces", serif;
 }
 .font-body {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
 }
 .font-accent {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: "Space Grotesk", sans-serif;
 }
 
 /* Grain texture overlay */
 .grain-overlay::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
@@ -110,18 +111,32 @@
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: #EDE8DF; }
-::-webkit-scrollbar-thumb { background: #C8A97E; border-radius: 3px; }
-.dark ::-webkit-scrollbar-track { background: #2a2520; }
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #ede8df;
+}
+::-webkit-scrollbar-thumb {
+  background: #c8a97e;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #2a2520;
+}
 
 /* Skeleton shimmer */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 .skeleton-shimmer {
-  background: linear-gradient(90deg, #EDE8DF 25%, #F5F0E8 50%, #EDE8DF 75%);
+  background: linear-gradient(90deg, #ede8df 25%, #f5f0e8 50%, #ede8df 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -133,48 +148,106 @@
 
 /* Animations */
 @keyframes heartBurst {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.5); }
-  70% { transform: scale(0.9); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.5);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
-.heart-burst { animation: heartBurst 0.35s ease-out; }
+.heart-burst {
+  animation: heartBurst 0.35s ease-out;
+}
 
 @keyframes cartBounce {
-  0% { transform: scale(1); }
-  35% { transform: scale(1.3); }
-  60% { transform: scale(0.88); }
-  80% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.3);
+  }
+  60% {
+    transform: scale(0.88);
+  }
+  80% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
-.cart-bounce { animation: cartBounce 0.45s ease-out; }
+.cart-bounce {
+  animation: cartBounce 0.45s ease-out;
+}
 
 @keyframes badgePop {
-  0% { transform: scale(0.5); opacity: 0; }
-  60% { transform: scale(1.25); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-.badge-pop { animation: badgePop 0.3s ease-out; }
+.badge-pop {
+  animation: badgePop 0.3s ease-out;
+}
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
-.fade-in-up-1 { animation: fadeInUp 0.6s ease-out 0.1s both; }
-.fade-in-up-2 { animation: fadeInUp 0.6s ease-out 0.22s both; }
-.fade-in-up-3 { animation: fadeInUp 0.6s ease-out 0.36s both; }
-.fade-in-up-4 { animation: fadeInUp 0.6s ease-out 0.5s both; }
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+.fade-in-up-1 {
+  animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+.fade-in-up-2 {
+  animation: fadeInUp 0.6s ease-out 0.22s both;
+}
+.fade-in-up-3 {
+  animation: fadeInUp 0.6s ease-out 0.36s both;
+}
+.fade-in-up-4 {
+  animation: fadeInUp 0.6s ease-out 0.5s both;
+}
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
 
 /* Theme transition */
-.theme-transition, .theme-transition * {
-  transition: background-color 400ms ease-in-out, color 400ms ease-in-out, border-color 400ms ease-in-out !important;
+.theme-transition,
+.theme-transition * {
+  transition:
+    background-color 400ms ease-in-out,
+    color 400ms ease-in-out,
+    border-color 400ms ease-in-out !important;
 }
 
 /* Gold divider */
@@ -183,5 +256,10 @@
 }
 
 /* Hide scrollbar but keep scroll */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

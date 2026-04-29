@@ -1,22 +1,48 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
-import { products } from "@/data/products";
+// import { products } from "@/data/products";
+import { getProducts, type Product } from "@/lib/api";
 import ProductCard from "@/components/products/ProductCard";
 
 export default function WishlistPage() {
   const { wishlist } = useStore();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const wishlisted = products.filter(p => wishlist.includes(p.id));
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/");
+      return;
     }
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data || []);
+      } catch (error) {
+        console.error("Failed to load products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
   }, [isAuthenticated, navigate]);
+
+  const wishlisted = products.filter(p => wishlist.includes(p.id));
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F5F0E8] dark:bg-[#1C1A17] flex items-center justify-center pt-16">
+        <div className="text-center">
+          <p className="font-display text-4xl font-light text-[#1C1A17] dark:text-[#F5F0E8] mb-4">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#F5F0E8] dark:bg-[#1C1A17] min-h-screen pt-16">
