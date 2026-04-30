@@ -1,8 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Check, ChevronRight, Lock } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { cn } from "@/lib/utils";
+import StripeProviderWrapper from "@/components/payment/StripeProvider";
+import StripePaymentForm from "@/components/payment/StripePaymentForm";
+import { useAuth } from "@/context/AuthContext";
+
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+}
+
+function InputField({ label, value, onChange, type = "text", placeholder = "" }: InputFieldProps) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="font-accent text-xs font-500 tracking-wide text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-12 px-4 bg-[#EDE8DF] dark:bg-[#252220] border border-[#C8A97E]/20 focus:border-[#C8A97E] outline-none font-body text-sm text-[#1C1A17] dark:text-[#F5F0E8] placeholder-[#1C1A17]/30 dark:placeholder-[#F5F0E8]/30 transition-colors"
+      />
+    </div>
+  );
+}
 
 type Step = "info" | "shipping" | "payment";
 
@@ -23,12 +51,45 @@ export default function CheckoutPage() {
   ];
   const stepIndex = steps.findIndex(s => s.id === step);
 
+  const { user } = useAuth();
+  const [useDefaultAddress, setUseDefaultAddress] = useState(true);
+  const [useUserInfo, setUseUserInfo] = useState(true);
+
   const [form, setForm] = useState({
-    email: "", firstName: "", lastName: "",
-    address: "", city: "", state: "", zip: "", country: "United States",
+    email: useUserInfo ? (user?.email || "") : "",
+    firstName: useUserInfo ? (user?.firstName || "") : "",
+    lastName: useUserInfo ? (user?.lastName || "") : "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "United States",
     shipping: "standard",
-    cardNumber: "", expiry: "", cvv: "", cardName: "",
   });
+
+  useEffect(() => {
+    if (user && useDefaultAddress && user.address) {
+      setForm(prev => ({
+        ...prev,
+        address: user.address.street || "",
+        city: user.address.city || "",
+        state: user.address.state || "",
+        zip: user.address.zipCode || "",
+        country: user.address.country || "United States",
+      }));
+    }
+  }, [user, useDefaultAddress]);
+
+  useEffect(() => {
+    if (user && useUserInfo) {
+      setForm(prev => ({
+        ...prev,
+        email: user.email || "",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+      }));
+    }
+  }, [user, useUserInfo]);
 
   const update = (key: string, value: string) => setForm(prev => ({ ...prev, [key]: value }));
 
@@ -58,9 +119,14 @@ export default function CheckoutPage() {
   const handleNext = () => {
     if (step === "info") setStep("shipping");
     else if (step === "shipping") setStep("payment");
-    else {
-      setCompleted(true);
-    }
+  };
+
+  const handlePaymentSuccess = () => {
+    setCompleted(true);
+  };
+
+  const handlePaymentError = (message: string) => {
+    console.error("Payment error:", message);
   };
 
   if (cart.length === 0 && !completed) {
@@ -92,23 +158,6 @@ export default function CheckoutPage() {
       </div>
     );
   }
-
-  const InputField = ({ label, value, onChange, type = "text", placeholder = "" }: {
-    label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
-  }) => (
-    <div className="flex flex-col gap-1.5">
-      <label className="font-accent text-xs font-500 tracking-wide text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="h-12 px-4 bg-[#EDE8DF] dark:bg-[#252220] border border-[#C8A97E]/20 focus:border-[#C8A97E] outline-none font-body text-sm text-[#1C1A17] dark:text-[#F5F0E8] placeholder-[#1C1A17]/30 dark:placeholder-[#F5F0E8]/30 transition-colors"
-      />
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#F5F0E8] dark:bg-[#1C1A17]">
@@ -152,24 +201,70 @@ export default function CheckoutPage() {
 
       <div className="max-w-[1100px] mx-auto px-6 md:px-10 py-10 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10">
 
-        {/* Left: Form */}
+         {/* Left: Form */}
         <div>
           <div className="bg-[#EDE8DF]/40 dark:bg-[#252220]/40 border border-[#C8A97E]/15 p-8 space-y-6">
 
             {step === "info" && (
               <>
                 <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">Contact Information</h2>
+
+                {user && (
+                  <div className="mb-6 p-4 bg-[#C8A97E]/10 border border-[#C8A97E]/20">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useUserInfo}
+                        onChange={e => setUseUserInfo(e.target.checked)}
+                        className="mt-1 w-4 h-4 accent-[#C8A97E]"
+                      />
+                      <div>
+                        <p className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">Use account information</p>
+                        <p className="font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60 mt-1">
+                          {user.email} • {user.firstName} {user.lastName}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                )}
+
                 <InputField label="Email Address" value={form.email} onChange={v => update("email", v)} type="email" placeholder="hello@example.com" />
                 <div className="grid grid-cols-2 gap-4">
                   <InputField label="First Name" value={form.firstName} onChange={v => update("firstName", v)} />
                   <InputField label="Last Name" value={form.lastName} onChange={v => update("lastName", v)} />
                 </div>
+                <button
+                  onClick={handleNext}
+                  className="w-full py-4 mt-4 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-sm tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"
+                >
+                  Continue
+                </button>
               </>
             )}
 
             {step === "shipping" && (
               <>
                 <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">Shipping Address</h2>
+
+                {user?.address && (
+                  <div className="mb-6 p-4 bg-[#C8A97E]/10 border border-[#C8A97E]/20">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useDefaultAddress}
+                        onChange={e => setUseDefaultAddress(e.target.checked)}
+                        className="mt-1 w-4 h-4 accent-[#C8A97E]"
+                      />
+                      <div>
+                        <p className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">Use default address</p>
+                        <p className="font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60 mt-1">
+                          {user.address.street}, {user.address.city}, {user.address.state} {user.address.zipCode}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                )}
+
                 <InputField label="Street Address" value={form.address} onChange={v => update("address", v)} placeholder="123 Main Street" />
                 <div className="grid grid-cols-2 gap-4">
                   <InputField label="City" value={form.city} onChange={v => update("city", v)} />
@@ -213,31 +308,40 @@ export default function CheckoutPage() {
                     ))}
                   </div>
                 </div>
+                <button
+                  onClick={handleNext}
+                  className="w-full py-4 mt-4 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-sm tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"
+                >
+                  Continue
+                </button>
               </>
             )}
 
             {step === "payment" && (
-              <>
-                <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">Payment</h2>
-                <div className="flex items-center gap-2 text-[#1C1A17]/50 dark:text-[#F5F0E8]/50 text-xs font-accent mb-4">
-                  <Lock size={12} className="text-[#C8A97E]" />
-                  Your payment information is encrypted and secure.
-                </div>
-                <InputField label="Card Number" value={form.cardNumber} onChange={v => update("cardNumber", v)} placeholder="1234 5678 9012 3456" />
-                <div className="grid grid-cols-2 gap-4">
-                  <InputField label="Expiry Date" value={form.expiry} onChange={v => update("expiry", v)} placeholder="MM / YY" />
-                  <InputField label="CVV" value={form.cvv} onChange={v => update("cvv", v)} placeholder="•••" />
-                </div>
-                <InputField label="Name on Card" value={form.cardName} onChange={v => update("cardName", v)} />
-              </>
+              <StripeProviderWrapper 
+                amount={total}
+                shippingAddress={{
+                  street: form.address,
+                  city: form.city,
+                  state: form.state,
+                  zipCode: form.zip,
+                  country: form.country,
+                }}
+              >
+                {({ clientSecret }) => (
+                  <>
+                    <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">Payment</h2>
+                    {clientSecret && (
+                      <StripePaymentForm
+                        amount={total}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+                    )}
+                  </>
+                )}
+              </StripeProviderWrapper>
             )}
-
-            <button
-              onClick={handleNext}
-              className="w-full py-4 mt-4 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-sm tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"
-            >
-              {step === "payment" ? "Place Order" : "Continue"}
-            </button>
           </div>
         </div>
 

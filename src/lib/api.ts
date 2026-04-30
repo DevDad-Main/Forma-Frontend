@@ -233,6 +233,73 @@ export interface Wishlist {
   products: string[];
 }
 
+export interface CreatePaymentIntentRequest {
+  amount: number;
+  currency?: string;
+  products?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  shippingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  shippingCost?: number;
+  discount?: number;
+}
+
+export interface CreatePaymentIntentResponse {
+  clientSecret: string;
+}
+
+export async function createPaymentIntent(
+  request: CreatePaymentIntentRequest
+): Promise<CreatePaymentIntentResponse> {
+  const { data } = await api.post<CreatePaymentIntentResponse>(
+    "/payments/create-payment-intent",
+    request
+  );
+  return data;
+}
+
+export interface CreateCheckoutSessionRequest {
+  products: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  shippingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  shippingCost: number;
+  discount: number;
+}
+
+export interface CreateCheckoutSessionResponse {
+  sessionId: string;
+  url: string;
+}
+
+export async function createCheckoutSession(
+  request: CreateCheckoutSessionRequest
+): Promise<CreateCheckoutSessionResponse> {
+  const { data } = await api.post<CreateCheckoutSessionResponse>(
+    "/payments/create-checkout-session",
+    request
+  );
+  return data;
+}
+
 // export async function getWishlist(): Promise<Wishlist> {
 //   const { data } = await api.get<Wishlist>("/wishlist");
 //   console.log(data);
