@@ -115,7 +115,7 @@ export default function CartDrawer() {
                         </button>
                       </div>
                       <p className="font-accent text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">
-                        ${(item.product.price * item.quantity).toLocaleString()}
+                        {(item.product.price * item.quantity).toLocaleString()} zł
                       </p>
                     </div>
                   </div>
@@ -130,7 +130,7 @@ export default function CartDrawer() {
           <div className="px-8 py-6 border-t border-[#C8A97E]/20 space-y-4">
             <div className="flex justify-between items-center">
               <span className="font-body text-sm text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">Subtotal</span>
-              <span className="font-accent font-500 text-[#1C1A17] dark:text-[#F5F0E8]">${cartTotal.toLocaleString()}</span>
+              <span className="font-accent font-500 text-[#1C1A17] dark:text-[#F5F0E8]">{cartTotal.toLocaleString()} zł</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="font-body text-sm text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">Shipping</span>
@@ -138,7 +138,7 @@ export default function CartDrawer() {
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-[#C8A97E]/15">
               <span className="font-body font-600 text-[#1C1A17] dark:text-[#F5F0E8]">Total</span>
-              <span className="font-accent font-600 text-lg text-[#1C1A17] dark:text-[#F5F0E8]">${cartTotal.toLocaleString()}</span>
+              <span className="font-accent font-600 text-lg text-[#1C1A17] dark:text-[#F5F0E8]">{cartTotal.toLocaleString()} zł</span>
             </div>
             <button
               onClick={() => { setCartOpen(false); navigate("/checkout"); }}

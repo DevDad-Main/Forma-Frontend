@@ -129,11 +129,11 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
           </p>
           <div className="text-right flex-shrink-0">
             <p className="font-accent font-500 text-[#1C1A17] dark:text-[#F5F0E8]">
-              ${product.price.toLocaleString()}
+              {product.price.toLocaleString()} zł
             </p>
             {product.originalPrice && (
               <p className="font-accent text-xs text-[#1C1A17]/40 dark:text-[#F5F0E8]/40 line-through">
-                ${product.originalPrice.toLocaleString()}
+                {product.originalPrice.toLocaleString()} zł
               </p>
             )}
           </div>

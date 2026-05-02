@@ -140,7 +140,7 @@ export default function ProductDetailPage() {
     {
       id: "shipping",
       title: "Shipping & Returns",
-      content: "Free white-glove delivery on orders over $2,000. Standard delivery 4–6 weeks. We accept returns within 14 days of delivery for items in original condition. Custom orders are non-returnable."
+      content: "Free white-glove delivery on orders over 2,000 zł. Standard delivery 4–6 weeks. We accept returns within 14 days of delivery for items in original condition. Custom orders are non-returnable."
     },
   ];
 
@@ -233,11 +233,11 @@ export default function ProductDetailPage() {
             {/* Price */}
             <div className="flex items-center gap-3 mb-4">
               <p className="font-accent text-2xl font-500 text-[#1C1A17] dark:text-[#F5F0E8]">
-                ${product.price.toLocaleString()}
+                {product.price.toLocaleString()} zł
               </p>
               {product.originalPrice && (
                 <p className="font-accent text-lg text-[#1C1A17]/40 dark:text-[#F5F0E8]/40 line-through">
-                  ${product.originalPrice.toLocaleString()}
+                  {product.originalPrice.toLocaleString()} zł
                 </p>
               )}
             </div>
@@ -390,7 +390,7 @@ export default function ProductDetailPage() {
       )}>
         <div className="flex-1">
           <p className="font-body font-500 text-sm text-[#1C1A17] dark:text-[#F5F0E8] truncate">{product.name}</p>
-          <p className="font-accent text-sm text-[#C8A97E]">${product.price.toLocaleString()}</p>
+          <p className="font-accent text-sm text-[#C8A97E]">{product.price.toLocaleString()} zł</p>
         </div>
         <button
           onClick={handleAddToCart}

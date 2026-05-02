@@ -127,8 +127,8 @@ export default function ShopPage() {
         {sidebarSections.price && (
           <div className="mt-4 space-y-3">
             <div className="flex justify-between font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
-              <span>${priceRange[0].toLocaleString()}</span>
-              <span>${priceRange[1].toLocaleString()}</span>
+              <span>{priceRange[0].toLocaleString()} zł</span>
+              <span>{priceRange[1].toLocaleString()} zł</span>
             </div>
             <input
               type="range"

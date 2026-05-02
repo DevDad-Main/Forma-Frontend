@@ -53,7 +53,7 @@ export default function StripeProviderWrapper({
 
         const request: CreatePaymentIntentRequest = {
           amount,
-          currency: "usd",
+          currency: "pln",
           products,
           shippingAddress,
         };

@@ -183,10 +183,10 @@ export default function AdminProductsPage() {
                       {product.category}
                     </td>
                     <td className="p-4 text-[#1C1A17] dark:text-[#F5F0E8]">
-                      ${product.price.toLocaleString()}
+                      {product.price.toLocaleString()} zł
                       {product.originalPrice && (
                         <span className="ml-2 text-sm line-through text-[#1C1A17]/40">
-                          ${product.originalPrice.toLocaleString()}
+                          {product.originalPrice.toLocaleString()} zł
                         </span>
                       )}
                     </td>

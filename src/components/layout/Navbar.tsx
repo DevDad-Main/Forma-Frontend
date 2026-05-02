@@ -270,7 +270,7 @@ export default function Navbar() {
                     <img src={product.image} alt={product.name} className="w-14 h-14 object-cover rounded" />
                     <div className="text-left">
                       <p className="font-body font-500 text-[#1C1A17] dark:text-[#F5F0E8]">{product.name}</p>
-                      <p className="font-accent text-sm text-[#C8A97E]">${product.price.toLocaleString()}</p>
+                      <p className="font-accent text-sm text-[#C8A97E]">{product.price.toLocaleString()} zł</p>
                     </div>
                   </button>
                 ))}

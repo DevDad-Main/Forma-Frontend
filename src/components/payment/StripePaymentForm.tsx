@@ -72,7 +72,7 @@ export default function StripePaymentForm({
           "w-full py-4 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-sm tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         )}
       >
-        {isProcessing ? "Processing..." : `Pay $${amount.toLocaleString()}`}
+        {isProcessing ? "Processing..." : `Pay ${amount.toLocaleString()} zł`}
       </button>
     </form>
   );

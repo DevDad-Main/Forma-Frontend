@@ -41,15 +41,21 @@ api.interceptors.response.use(
     const url = config?.url || "";
     // Don't redirect for wishlist endpoints (they may return 401 if not authenticated)
     const isWishlistEndpoint = url.includes("/wishlist");
+    const isProductsEndpoint = url.includes("/products") || url.includes("/shop");
+    
     if (
       error.response?.status === 401 &&
       !isLoggingOut &&
       !config?._skipAuthCheck &&
-      !isWishlistEndpoint
+      !isWishlistEndpoint &&
+      !isProductsEndpoint // Don't redirect on public product endpoints
     ) {
       isLoggingOut = true;
       localStorage.removeItem("auth_user");
-      window.location.href = "/";
+      // Only redirect if we're not already on the home page
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      }
     }
     return Promise.reject(error);
   },
@@ -235,7 +241,7 @@ export interface Wishlist {
 
 export interface CreatePaymentIntentRequest {
   amount: number;
-  currency?: string;
+  currency?: string; // Will be "pln" for Polish Złoty
   products?: Array<{
     id: string;
     name: string;
@@ -258,11 +264,11 @@ export interface CreatePaymentIntentResponse {
 }
 
 export async function createPaymentIntent(
-  request: CreatePaymentIntentRequest
+  request: CreatePaymentIntentRequest,
 ): Promise<CreatePaymentIntentResponse> {
   const { data } = await api.post<CreatePaymentIntentResponse>(
     "/payments/create-payment-intent",
-    request
+    request,
   );
   return data;
 }
@@ -291,11 +297,11 @@ export interface CreateCheckoutSessionResponse {
 }
 
 export async function createCheckoutSession(
-  request: CreateCheckoutSessionRequest
+  request: CreateCheckoutSessionRequest,
 ): Promise<CreateCheckoutSessionResponse> {
   const { data } = await api.post<CreateCheckoutSessionResponse>(
     "/payments/create-checkout-session",
-    request
+    request,
   );
   return data;
 }
@@ -317,9 +323,80 @@ export async function addToWishlist(productId: string): Promise<Product[]> {
   return data;
 }
 
-export async function removeFromWishlist(productId: string): Promise<Product[]> {
+export async function removeFromWishlist(
+  productId: string,
+): Promise<Product[]> {
   const { data } = await api.delete<Product[]>(`/wishlist/remove/${productId}`);
   return data;
+}
+
+export interface Order {
+  id: string;
+  orderNumber?: string;
+  date: string;
+  status: string;
+  total: number;
+  subtotal?: number;
+  shippingCost?: number;
+  discount?: number;
+  items: number;
+  shippingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+}
+
+export async function getOrders(): Promise<Order[]> {
+  try {
+    const response = await api.get("/orders");
+
+    console.log(response);
+
+    // Handle if backend returns string instead of parsed JSON
+    let orders = response.data;
+    if (typeof orders === "string") {
+      try {
+        orders = JSON.parse(orders);
+      } catch (e) {
+        console.error("Failed to parse orders JSON:", e);
+        return [];
+      }
+    }
+
+    if (!Array.isArray(orders)) {
+      console.error("Orders is not an array:", orders);
+      return [];
+    }
+
+    const transformed = orders.map((order: any) => ({
+      id: String(order.id || "N/A"),
+      orderNumber: order.orderNumber || order.order_number || `FMA-${order.id}`,
+      date: order.createdAt
+        ? new Date(order.createdAt).toLocaleDateString()
+        : new Date().toLocaleDateString(),
+      status: order.status || "Processing",
+      total: Math.round((order.amount || 0) / 100),
+      subtotal: Math.round((order.subtotal || order.amount || 0) / 100),
+      shippingCost: Math.round((order.shipingCost || order.shippingCost || 0) / 100),
+      discount: Math.round((order.discount || 0) / 100),
+      items: Array.isArray(order.items) ? order.items.length : 0,
+      shippingAddress: order.street ? {
+        street: order.street || "",
+        city: order.city || "",
+        state: order.state || "",
+        zipCode: order.zipCode || order.zip_code || "",
+        country: order.country || "",
+      } : undefined,
+    }));
+
+    return transformed;
+  } catch (error) {
+    console.error("Failed to fetch orders:", error);
+    return [];
+  }
 }
 
 export { api };

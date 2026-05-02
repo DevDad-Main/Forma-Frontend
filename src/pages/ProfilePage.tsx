@@ -1,19 +1,33 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Package, Heart, Settings, LogOut, Camera, Save, MapPin, Plus, Pencil, Trash } from "lucide-react";
+import {
+  User,
+  Package,
+  Heart,
+  Settings,
+  LogOut,
+  Camera,
+  Save,
+  MapPin,
+  Plus,
+  Pencil,
+  Trash,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { api, updateAddress, createAddress, deleteAddress, getAddresses, type Address } from "@/lib/api";
+import {
+  api,
+  updateAddress,
+  createAddress,
+  deleteAddress,
+  getAddresses,
+  getOrders,
+  type Address,
+  type Order,
+} from "@/lib/api";
 import { AddressForm } from "@/components/profile/AddressForm";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-interface Order {
-  id: string;
-  date: string;
-  status: string;
-  total: number;
-  items: number;
-}
+import { generateInvoice } from "@/services/invoiceService";
 
 interface UserProfile {
   id: string;
@@ -27,7 +41,9 @@ interface UserProfile {
 export default function ProfilePage() {
   const { user, isAuthenticated, logout, checkAuth } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"profile" | "orders" | "addresses" | "settings">("profile");
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "orders" | "addresses" | "settings"
+  >("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -39,6 +55,8 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -56,6 +74,25 @@ export default function ProfilePage() {
       });
     }
   }, [user]);
+
+  const loadOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      const data = await getOrders();
+      setOrders(data || []);
+    } catch (error) {
+      console.error("Failed to load orders", error);
+      setOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "orders") {
+      loadOrders();
+    }
+  }, [activeTab]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -86,11 +123,6 @@ export default function ProfilePage() {
     navigate("/");
   };
 
-  const mockOrders: Order[] = [
-    { id: "ORD-001", date: "2026-04-15", status: "Delivered", total: 1250, items: 2 },
-    { id: "ORD-002", date: "2026-03-28", status: "Processing", total: 890, items: 1 },
-  ];
-
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
     { id: "orders", label: "Orders", icon: Package },
@@ -118,7 +150,9 @@ export default function ProfilePage() {
     <div className="bg-[#F5F0E8] dark:bg-[#1C1A17] min-h-screen pt-16">
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 py-16">
         <div className="flex items-center gap-2 mb-8 font-accent text-xs text-[#1C1A17]/50 dark:text-[#F5F0E8]/50">
-          <Link to="/" className="hover:text-[#C8A97E] transition-colors">Home</Link>
+          <Link to="/" className="hover:text-[#C8A97E] transition-colors">
+            Home
+          </Link>
           <span>/</span>
           <span className="text-[#1C1A17] dark:text-[#F5F0E8]">Profile</span>
         </div>
@@ -127,13 +161,13 @@ export default function ProfilePage() {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-[#EDE8DF] dark:bg-[#252220] rounded-lg p-6">
-              <div className="text-center mb-6">
+              <div className="mb-6 text-center">
                 <div className="relative inline-block">
                   {profile?.picture ? (
-                    <img 
-                      src={profile.picture} 
+                    <img
+                      src={profile.picture}
                       alt={profile.name}
-                      className="w-24 h-24 rounded-full object-cover mx-auto"
+                      className="object-cover w-24 h-24 mx-auto rounded-full"
                     />
                   ) : (
                     <div className="w-24 h-24 rounded-full bg-[#C8A97E] flex items-center justify-center mx-auto">
@@ -154,24 +188,32 @@ export default function ProfilePage() {
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as "profile" | "orders" | "addresses" | "settings")}
+                    onClick={() =>
+                      setActiveTab(
+                        tab.id as
+                          | "profile"
+                          | "orders"
+                          | "addresses"
+                          | "settings",
+                      )
+                    }
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left",
                       activeTab === tab.id
                         ? "bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17]"
-                        : "text-[#1C1A17] dark:text-[#F5F0E8] hover:bg-[#E5DFD3] dark:hover:bg-[#2a2520]"
+                        : "text-[#1C1A17] dark:text-[#F5F0E8] hover:bg-[#E5DFD3] dark:hover:bg-[#2a2520]",
                     )}
                   >
                     <tab.icon size={18} />
-                    <span className="font-body text-sm">{tab.label}</span>
+                    <span className="text-sm font-body">{tab.label}</span>
                   </button>
                 ))}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="flex items-center w-full px-4 py-3 text-left text-red-600 rounded-lg gap-3 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <LogOut size={18} />
-                  <span className="font-body text-sm">Sign Out</span>
+                  <span className="text-sm font-body">Sign Out</span>
                 </button>
               </nav>
             </div>
@@ -205,7 +247,12 @@ export default function ProfilePage() {
                         <input
                           type="text"
                           value={formData.firstName}
-                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              firstName: e.target.value,
+                            })
+                          }
                           className="w-full px-4 py-3 bg-[#F5F0E8] dark:bg-[#1C1A17] border border-[#C8A97E]/30 rounded text-[#1C1A17] dark:text-[#F5F0E8] font-body"
                         />
                       ) : (
@@ -222,7 +269,12 @@ export default function ProfilePage() {
                         <input
                           type="text"
                           value={formData.lastName}
-                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              lastName: e.target.value,
+                            })
+                          }
                           className="w-full px-4 py-3 bg-[#F5F0E8] dark:bg-[#1C1A17] border border-[#C8A97E]/30 rounded text-[#1C1A17] dark:text-[#F5F0E8] font-body"
                         />
                       ) : (
@@ -242,7 +294,7 @@ export default function ProfilePage() {
                   </div>
 
                   {isEditing && (
-                    <div className="flex gap-4 pt-4">
+                    <div className="flex pt-4 gap-4">
                       <button
                         onClick={handleSave}
                         disabled={loading}
@@ -276,10 +328,18 @@ export default function ProfilePage() {
                   Your Orders
                 </h2>
 
-                {mockOrders.length === 0 ? (
-                  <div className="text-center py-12">
+                {ordersLoading ? (
+                  <div className="py-12 text-center">
+                    <p className="font-body text-lg text-[#1C1A17]/60">
+                      Loading orders...
+                    </p>
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="py-12 text-center">
                     <Package className="w-16 h-16 text-[#C8A97E]/30 mx-auto mb-4" />
-                    <p className="font-body text-lg text-[#1C1A17]/60">No orders yet</p>
+                    <p className="font-body text-lg text-[#1C1A17]/60">
+                      No orders yet
+                    </p>
                     <Link
                       to="/shop"
                       className="inline-block mt-4 px-6 py-3 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] rounded font-body text-sm"
@@ -289,22 +349,33 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {mockOrders.map((order) => (
+                    {orders.map((order) => (
                       <div
                         key={order.id}
                         className="flex items-center justify-between p-4 bg-[#F5F0E8] dark:bg-[#1C1A17] rounded-lg"
                       >
                         <div>
                           <p className="font-body font-500 text-[#1C1A17] dark:text-[#F5F0E8]">
-                            {order.id}
+                            {/* {order.id} */}
+                            {order.orderNumber}
                           </p>
-                          <p className="text-sm text-[#1C1A17]/60">{order.date}</p>
+                          <p className="text-sm text-[#1C1A17]/60">
+                            {order.date}
+                          </p>
                         </div>
                         <div className="text-right">
                           <p className="font-body font-500 text-[#1C1A17] dark:text-[#F5F0E8]">
-                            ${order.total.toLocaleString()}
+                            {order.total.toLocaleString()} PLN
                           </p>
-                          <p className="text-sm text-[#C8A97E]">{order.status}</p>
+                          <p className="text-sm text-[#C8A97E]">
+                            {order.status}
+                          </p>
+                          <button
+                            onClick={() => generateInvoice(order, profile)}
+                            className="mt-2 text-xs font-accent text-[#C8A97E] underline underline-offset-2 hover:text-[#1C1A17] dark:hover:text-[#F5F0E8] transition-colors"
+                          >
+                            Download Invoice
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -357,9 +428,11 @@ export default function ProfilePage() {
                     />
                   </div>
                 ) : addresses.length === 0 ? (
-                  <div className="text-center py-12">
+                  <div className="py-12 text-center">
                     <MapPin className="w-16 h-16 text-[#C8A97E]/30 mx-auto mb-4" />
-                    <p className="font-body text-lg text-[#1C1A17]/60">No addresses saved</p>
+                    <p className="font-body text-lg text-[#1C1A17]/60">
+                      No addresses saved
+                    </p>
                     <button
                       onClick={() => setShowAddressForm(true)}
                       className="inline-block mt-4 px-6 py-3 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] rounded font-body text-sm"
@@ -375,18 +448,22 @@ export default function ProfilePage() {
                         className="flex items-start justify-between p-4 bg-[#F5F0E8] dark:bg-[#1C1A17] rounded-lg"
                       >
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center mb-2 gap-2">
                             {addr.isDefault && (
                               <span className="px-2 py-0.5 bg-[#C8A97E] text-[#1C1A17] text-xs font-body rounded">
                                 Default
                               </span>
                             )}
                           </div>
-                          <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">{addr.street}</p>
+                          <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">
+                            {addr.street}
+                          </p>
                           <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">
                             {addr.city}, {addr.state} {addr.zipCode}
                           </p>
-                          <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">{addr.country}</p>
+                          <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">
+                            {addr.country}
+                          </p>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -426,20 +503,28 @@ export default function ProfilePage() {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between py-4 border-b border-[#C8A97E]/20">
                     <div>
-                      <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">Email Notifications</p>
-                      <p className="text-sm text-[#1C1A17]/60">Receive updates about your orders</p>
+                      <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">
+                        Email Notifications
+                      </p>
+                      <p className="text-sm text-[#1C1A17]/60">
+                        Receive updates about your orders
+                      </p>
                     </div>
                     <button className="w-12 h-6 bg-[#C8A97E] rounded-full relative">
-                      <span className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
+                      <span className="absolute w-4 h-4 bg-white rounded-full right-1 top-1" />
                     </button>
                   </div>
                   <div className="flex items-center justify-between py-4 border-b border-[#C8A97E]/20">
                     <div>
-                      <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">Marketing Emails</p>
-                      <p className="text-sm text-[#1C1A17]/60">Receive news and exclusive offers</p>
+                      <p className="font-body text-[#1C1A17] dark:text-[#F5F0E8]">
+                        Marketing Emails
+                      </p>
+                      <p className="text-sm text-[#1C1A17]/60">
+                        Receive news and exclusive offers
+                      </p>
                     </div>
                     <button className="w-12 h-6 bg-[#C8A97E] rounded-full relative">
-                      <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full" />
+                      <span className="absolute w-4 h-4 bg-white rounded-full left-1 top-1" />
                     </button>
                   </div>
                 </div>
@@ -451,3 +536,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

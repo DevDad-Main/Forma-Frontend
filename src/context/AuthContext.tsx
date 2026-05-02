@@ -38,49 +38,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const checkIntervalRef = useRef<number | null>(null);
+  const lastAuthCheckRef = useRef<number>(0);
+  const failedAuthAttempts = useRef<number>(0);
 
   const checkAuth = useCallback(async () => {
+    const now = Date.now();
+    // Prevent rapid successive calls (minimum 5 seconds between calls)
+    if (now - lastAuthCheckRef.current < 5000) {
+      console.log("Auth check throttled, skipping...");
+      return;
+    }
+    lastAuthCheckRef.current = now;
+
     try {
       console.log("Checking auth with backend...");
       const currentUser = await getCurrentUser();
       console.log("Got user:", currentUser);
       setUser(currentUser);
       setIsAuthenticated(true);
+      setIsLoading(false);
+      failedAuthAttempts.current = 0;
+      
+      // Only set up interval after successful authentication
+      if (!checkIntervalRef.current) {
+        checkIntervalRef.current = window.setInterval(() => {
+          checkAuth();
+        }, 30000);
+      }
     } catch (error: any) {
       console.error("Auth check failed:", error);
       if (error?.response?.status === 401) {
         console.log("User not logged in (401) - this is expected");
         setUser(null);
         setIsAuthenticated(false);
+        failedAuthAttempts.current += 1;
+        
         // Stop checking auth when not authenticated
         if (checkIntervalRef.current) {
           clearInterval(checkIntervalRef.current);
           checkIntervalRef.current = null;
         }
+        
+        // If too many failed attempts, stop trying for a while
+        if (failedAuthAttempts.current >= 3) {
+          console.log("Too many failed auth attempts, backing off...");
+          setTimeout(() => {
+            failedAuthAttempts.current = 0;
+          }, 60000); // Reset after 1 minute
+        }
       } else {
         console.log("Other error, keeping current auth state");
       }
-    } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    checkAuth();
+    // Only check auth if there's a session cookie (user might be logged in)
+    const hasSession = document.cookie.includes("jwt=") || document.cookie.includes("JSESSIONID=");
     
-    // Set up periodic auth check (every 30 seconds)
-    checkIntervalRef.current = window.setInterval(() => {
-      if (isAuthenticated) {
-        checkAuth();
-      }
-    }, 30000);
+    if (hasSession && failedAuthAttempts.current < 3) {
+      checkAuth();
+    } else {
+      // No session cookie or too many failed attempts, skip auth check
+      console.log("Skipping auth check - no session or too many failed attempts");
+      setIsLoading(false);
+    }
     
     return () => {
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
       }
     };
-  }, [checkAuth, isAuthenticated]);
+  }, []);
 
   const login = async (credentials: LoginRequest) => {
     const response = await apiLogin(credentials);

@@ -13,9 +13,10 @@ interface InputFieldProps {
   onChange: (v: string) => void;
   type?: string;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-function InputField({ label, value, onChange, type = "text", placeholder = "" }: InputFieldProps) {
+function InputField({ label, value, onChange, type = "text", placeholder = "", disabled = false }: InputFieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="font-accent text-xs font-500 tracking-wide text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
@@ -26,7 +27,11 @@ function InputField({ label, value, onChange, type = "text", placeholder = "" }:
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-12 px-4 bg-[#EDE8DF] dark:bg-[#252220] border border-[#C8A97E]/20 focus:border-[#C8A97E] outline-none font-body text-sm text-[#1C1A17] dark:text-[#F5F0E8] placeholder-[#1C1A17]/30 dark:placeholder-[#F5F0E8]/30 transition-colors"
+        disabled={disabled}
+        className={cn(
+          "h-12 px-4 bg-[#EDE8DF] dark:bg-[#252220] border border-[#C8A97E]/20 focus:border-[#C8A97E] outline-none font-body text-sm text-[#1C1A17] dark:text-[#F5F0E8] placeholder-[#1C1A17]/30 dark:placeholder-[#F5F0E8]/30 transition-colors",
+          disabled && "opacity-50 cursor-not-allowed bg-[#EDE8DF]/50 dark:bg-[#252220]/50"
+        )}
       />
     </div>
   );
@@ -94,7 +99,7 @@ export default function CheckoutPage() {
   const update = (key: string, value: string) => setForm(prev => ({ ...prev, [key]: value }));
 
   const shippingOptions = [
-    { id: "standard", label: "Standard (4–6 weeks)", price: 0, note: "Free on orders over $2,000" },
+    { id: "standard", label: "Standard (4–6 weeks)", price: 0, note: "Free on orders over 2,000 zł" },
     { id: "express", label: "Express (2–3 weeks)", price: 180 },
     { id: "white-glove", label: "White Glove Delivery", price: 350, note: "Includes assembly" },
   ];
@@ -219,7 +224,7 @@ export default function CheckoutPage() {
                         className="mt-1 w-4 h-4 accent-[#C8A97E]"
                       />
                       <div>
-                        <p className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">Use account information</p>
+                        <p className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">Use default profile information</p>
                         <p className="font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60 mt-1">
                           {user.email} • {user.firstName} {user.lastName}
                         </p>
@@ -228,10 +233,18 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                <InputField label="Email Address" value={form.email} onChange={v => update("email", v)} type="email" placeholder="hello@example.com" />
+                {!useUserInfo && (
+                  <div className="mb-4 p-3 bg-[#1C1A17]/5 dark:bg-[#F5F0E8]/5 border border-[#C8A97E]/20">
+                    <p className="font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
+                      Enter different contact information for this order
+                    </p>
+                  </div>
+                )}
+
+                <InputField label="Email Address" value={form.email} onChange={v => update("email", v)} type="email" placeholder="hello@example.com" disabled={useUserInfo && !!user?.email} />
                 <div className="grid grid-cols-2 gap-4">
-                  <InputField label="First Name" value={form.firstName} onChange={v => update("firstName", v)} />
-                  <InputField label="Last Name" value={form.lastName} onChange={v => update("lastName", v)} />
+                  <InputField label="First Name" value={form.firstName} onChange={v => update("firstName", v)} disabled={useUserInfo && !!user?.firstName} />
+                  <InputField label="Last Name" value={form.lastName} onChange={v => update("lastName", v)} disabled={useUserInfo && !!user?.lastName} />
                 </div>
                 <button
                   onClick={handleNext}
@@ -256,7 +269,7 @@ export default function CheckoutPage() {
                         className="mt-1 w-4 h-4 accent-[#C8A97E]"
                       />
                       <div>
-                        <p className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">Use default address</p>
+                        <p className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">Use default shipping address</p>
                         <p className="font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60 mt-1">
                           {user.address.street}, {user.address.city}, {user.address.state} {user.address.zipCode}
                         </p>
@@ -265,14 +278,22 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                <InputField label="Street Address" value={form.address} onChange={v => update("address", v)} placeholder="123 Main Street" />
+                {!useDefaultAddress && (
+                  <div className="mb-4 p-3 bg-[#1C1A17]/5 dark:bg-[#F5F0E8]/5 border border-[#C8A97E]/20">
+                    <p className="font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
+                      Enter a different shipping address for this order
+                    </p>
+                  </div>
+                )}
+
+                <InputField label="Street Address" value={form.address} onChange={v => update("address", v)} placeholder="123 Main Street" disabled={useDefaultAddress && !!user?.address?.street} />
                 <div className="grid grid-cols-2 gap-4">
-                  <InputField label="City" value={form.city} onChange={v => update("city", v)} />
-                  <InputField label="State / Province" value={form.state} onChange={v => update("state", v)} />
+                  <InputField label="City" value={form.city} onChange={v => update("city", v)} disabled={useDefaultAddress && !!user?.address?.city} />
+                  <InputField label="State / Province" value={form.state} onChange={v => update("state", v)} disabled={useDefaultAddress && !!user?.address?.state} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <InputField label="ZIP / Postal Code" value={form.zip} onChange={v => update("zip", v)} />
-                  <InputField label="Country" value={form.country} onChange={v => update("country", v)} />
+                  <InputField label="ZIP / Postal Code" value={form.zip} onChange={v => update("zip", v)} disabled={useDefaultAddress && !!user?.address?.zipCode} />
+                  <InputField label="Country" value={form.country} onChange={v => update("country", v)} disabled={useDefaultAddress && !!user?.address?.country} />
                 </div>
 
                 {/* Shipping method */}
@@ -299,7 +320,7 @@ export default function CheckoutPage() {
                           <div className="flex justify-between">
                             <span className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">{opt.label}</span>
                             <span className="font-accent text-sm text-[#C8A97E]">
-                              {opt.price === 0 ? "Free" : `$${opt.price}`}
+                              {opt.price === 0 ? "Free" : `${opt.price} zł`}
                             </span>
                           </div>
                           {opt.note && <p className="font-body text-xs text-[#1C1A17]/50 dark:text-[#F5F0E8]/50 mt-0.5">{opt.note}</p>}
@@ -364,7 +385,7 @@ export default function CheckoutPage() {
                     <p className="font-accent text-xs text-[#1C1A17]/50 dark:text-[#F5F0E8]/50">{item.product.material}</p>
                   </div>
                   <p className="font-accent text-sm text-[#1C1A17] dark:text-[#F5F0E8]">
-                    ${(item.product.price * item.quantity).toLocaleString()}
+                    {(item.product.price * item.quantity).toLocaleString()} zł
                   </p>
                 </div>
               ))}
@@ -409,22 +430,22 @@ export default function CheckoutPage() {
             <div className="space-y-3">
               <div className="flex justify-between font-accent text-sm text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
                 <span>Subtotal</span>
-                <span>${cartTotal.toLocaleString()}</span>
+                <span>{cartTotal.toLocaleString()} zł</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between font-accent text-sm text-green-600">
                   <span>Discount (10%)</span>
-                  <span>–${discount.toFixed(0)}</span>
+                  <span>–{discount.toFixed(0)} zł</span>
                 </div>
               )}
               <div className="flex justify-between font-accent text-sm text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
                 <span>Shipping</span>
-                <span>{shippingCost === 0 ? "Free" : `$${shippingCost}`}</span>
+                <span>{shippingCost === 0 ? "Free" : `${shippingCost} zł`}</span>
               </div>
               <hr className="divider-gold border-t" />
               <div className="flex justify-between font-accent font-600 text-base text-[#1C1A17] dark:text-[#F5F0E8]">
                 <span>Total</span>
-                <span>${total.toLocaleString()}</span>
+                <span>{total.toLocaleString()} zł</span>
               </div>
             </div>
           </div>
