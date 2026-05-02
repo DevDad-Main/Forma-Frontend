@@ -125,14 +125,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
+  const logout = async () => {
     googleLogout();
     localStorage.removeItem("auth_user");
     setLoggingOut();
     try {
-      api.post("/auth/logout", {}, { _skipAuthCheck: true } as any);
+      await api.post("/auth/logout", {}, { _skipAuthCheck: true } as any);
     } catch {
-      // Ignore
+      // Ignore - we're logging out anyway
     }
     setUser(null);
     setIsAuthenticated(false);
