@@ -52,7 +52,7 @@ export default function HomePage() {
   const [subscribed, setSubscribed] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const autoplayPlugin = useRef(
-    Autoplay({ delay: 2000, stopOnInteraction: false })
+    Autoplay({ delay: 2000, stopOnInteraction: true, stopOnMouseEnter: true })
   );
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({

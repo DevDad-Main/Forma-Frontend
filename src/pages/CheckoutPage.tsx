@@ -40,7 +40,7 @@ function InputField({ label, value, onChange, type = "text", placeholder = "", d
 type Step = "info" | "shipping" | "payment";
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, removeFromCart } = useStore();
+  const { cart, cartTotal, removeFromCart, setCart } = useStore();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("info");
   const [completed, setCompleted] = useState(false);

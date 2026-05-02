@@ -48,9 +48,10 @@ interface StoreContextType {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   toggleWishlist: (productId: string) => void;
+  setCart: (cart: CartItem[]) => void;
   setCartOpen: (open: boolean) => void;
   toggleDarkMode: () => void;
-}
+};
 
 const StoreContext = createContext<StoreContextType | null>(null);
 
@@ -182,7 +183,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   }, []);
 
-  return (
+   return (
     <StoreContext.Provider
       value={{
         cart,
@@ -195,6 +196,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         removeFromCart,
         updateQuantity,
         toggleWishlist,
+        setCart,
         setCartOpen,
         toggleDarkMode,
       }}
