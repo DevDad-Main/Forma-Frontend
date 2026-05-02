@@ -52,6 +52,7 @@ api.interceptors.response.use(
     ) {
       isLoggingOut = true;
       localStorage.removeItem("auth_user");
+      // Clear any running intervals by reloading to clean state
       // Only redirect if we're not already on the home page
       if (window.location.pathname !== "/") {
         window.location.href = "/";

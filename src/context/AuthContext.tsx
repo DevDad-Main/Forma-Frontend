@@ -42,14 +42,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const lastAuthCheckRef = useRef<number>(0);
   const failedAuthAttempts = useRef<number>(0);
 
-  const checkAuth = useCallback(async () => {
-    const now = Date.now();
-    // Prevent rapid successive calls (minimum 5 seconds between calls)
-    if (now - lastAuthCheckRef.current < 5000) {
-      console.log("Auth check throttled, skipping...");
-      return;
-    }
-    lastAuthCheckRef.current = now;
+const checkAuth = useCallback(async () => {
+  // Don't check auth if we're logging out
+  if (isLoggingOut) {
+    console.log("Skipping auth check - logging out");
+    return;
+  }
+  const now = Date.now();
+  // Prevent rapid successive calls (minimum 5 seconds between calls)
+  if (now - lastAuthCheckRef.current < 5000) {
+    console.log("Auth check throttled, skipping...");
+    return;
+  }
+  lastAuthCheckRef.current = now;
 
     try {
       console.log("Checking auth with backend...");
@@ -125,19 +130,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
   };
 
-  const logout = async () => {
-    googleLogout();
-    localStorage.removeItem("auth_user");
-    setLoggingOut();
-    try {
-      await api.post("/auth/logout", {}, { _skipAuthCheck: true } as any);
-    } catch {
-      // Ignore - we're logging out anyway
-    }
-    setUser(null);
-    setIsAuthenticated(false);
-    window.location.href = "/";
-  };
+const logout = async () => {
+  googleLogout();
+  localStorage.removeItem("auth_user");
+  setLoggingOut();
+  // Clear the auth check interval to prevent re-authentication
+  if (checkIntervalRef.current) {
+    clearInterval(checkIntervalRef.current);
+    checkIntervalRef.current = null;
+  }
+  try {
+    await api.post("/auth/logout", {}, { _skipAuthCheck: true } as any);
+  } catch {
+    // Ignore - we're logging out anyway
+  }
+  setUser(null);
+  setIsAuthenticated(false);
+  window.location.href = "/";
+};
 
   return (
     <AuthContext.Provider
