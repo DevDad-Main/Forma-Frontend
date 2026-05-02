@@ -25,9 +25,15 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
       toast.error("Please sign in to save favorites");
       return;
     }
-    toggleWishlist(product.id);
+    const wasWishlisted = isWishlisted;
+    toggleWishlist(product.id.toString());
     setHeartAnim(true);
     setTimeout(() => setHeartAnim(false), 400);
+    if (wasWishlisted) {
+      toast.success("Removed from wishlist");
+    } else {
+      toast.success("Added to wishlist");
+    }
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {

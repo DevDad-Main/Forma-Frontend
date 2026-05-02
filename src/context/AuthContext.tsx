@@ -10,6 +10,7 @@ import {
   api,
   isLoggingOut,
   setLoggingOut,
+  resetLoggingOut,
   type User,
   type LoginRequest,
   type RegisterRequest,
@@ -58,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAuthenticated(true);
       setIsLoading(false);
       failedAuthAttempts.current = 0;
+      resetLoggingOut(); // Reset the logging out flag
       
       // Only set up interval after successful authentication
       if (!checkIntervalRef.current) {
@@ -94,14 +96,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    // Only check auth if there's a session cookie (user might be logged in)
-    const hasSession = document.cookie.includes("jwt=") || document.cookie.includes("JSESSIONID=");
-    
-    if (hasSession && failedAuthAttempts.current < 3) {
+    // Always attempt auth check on mount
+    // HttpOnly cookies cannot be checked via JavaScript, so we must always try
+    // The backend /auth/me will return 401 if not authenticated
+    if (failedAuthAttempts.current < 3) {
       checkAuth();
     } else {
-      // No session cookie or too many failed attempts, skip auth check
-      console.log("Skipping auth check - no session or too many failed attempts");
+      console.log("Skipping auth check - too many failed attempts");
       setIsLoading(false);
     }
     

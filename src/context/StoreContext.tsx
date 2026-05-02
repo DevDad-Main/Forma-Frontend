@@ -9,9 +9,9 @@ import {
   getWishlist,
   addToWishlist,
   removeFromWishlist,
-  isAuthenticated,
   type Wishlist,
 } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 export interface Product {
   id: string;
@@ -67,14 +67,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-  // Load wishlist from backend on mount - only if authenticated
+  // Load wishlist when authentication state changes
   useEffect(() => {
+    if (!isAuthenticated) {
+      setWishlist([]);
+      return;
+    }
     const loadWishlist = async () => {
-      // Don't try to load wishlist if not authenticated
-      if (!isAuthenticated()) {
-        return;
-      }
       try {
         const data = await getWishlist();
         // Backend returns Product[], extract IDs
@@ -88,7 +89,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
     loadWishlist();
-  }, []);
+  }, [isAuthenticated]);
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cart.reduce(
@@ -138,19 +139,28 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   const toggleWishlist = useCallback(
     async (productId: string) => {
       try {
-        if (wishlist.includes(productId)) {
+        // First, sync with backend, then update state
+        const isCurrentlyWishlisted = wishlist.includes(productId);
+        
+        if (isCurrentlyWishlisted) {
           const data = await removeFromWishlist(productId);
-          // Backend returns Product[], extract IDs
           const productIds = data.map((p: any) => p.id.toString());
           setWishlist(productIds);
         } else {
           const data = await addToWishlist(productId);
-          // Backend returns Product[], extract IDs
           const productIds = data.map((p: any) => p.id.toString());
           setWishlist(productIds);
         }
       } catch (error) {
         console.error("Failed to update wishlist", error);
+        // Reload wishlist on error to ensure consistency
+        try {
+          const data = await getWishlist();
+          const productIds = data.map((p: any) => p.id.toString());
+          setWishlist(productIds);
+        } catch (reloadError) {
+          console.error("Failed to reload wishlist", reloadError);
+        }
       }
     },
     [wishlist],

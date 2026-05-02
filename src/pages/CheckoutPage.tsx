@@ -151,9 +151,6 @@ export default function CheckoutPage() {
         <p className="font-body text-base text-[#1C1A17]/60 dark:text-[#F5F0E8]/60 max-w-sm mb-10 leading-relaxed">
           Your order has been confirmed. We'll be in touch with delivery updates.
         </p>
-        <p className="font-accent text-xs text-[#C8A97E] tracking-widest uppercase mb-8">
-          Order #FMA-{Math.floor(Math.random() * 90000) + 10000}
-        </p>
         <button
           onClick={() => navigate("/")}
           className="px-10 py-4 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-sm tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"

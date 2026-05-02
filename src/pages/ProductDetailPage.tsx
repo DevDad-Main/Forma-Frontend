@@ -115,9 +115,15 @@ export default function ProductDetailPage() {
       toast.error("Please sign in to save favorites");
       return;
     }
-    toggleWishlist(product.id);
+    const wasWishlisted = isWishlisted;
+    toggleWishlist(product.id.toString());
     setHeartAnim(true);
     setTimeout(() => setHeartAnim(false), 400);
+    if (wasWishlisted) {
+      toast.success("Removed from wishlist");
+    } else {
+      toast.success("Added to wishlist");
+    }
   };
 
   const variants = ["Natural", "Dark Walnut", "White Oak"];
@@ -383,24 +389,39 @@ export default function ProductDetailPage() {
         )}
       </div>
 
-      {/* Sticky Add to Cart bar */}
-      <div className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 bg-[#F5F0E8] dark:bg-[#1C1A17] border-t border-[#C8A97E]/20 px-6 py-4 flex items-center gap-4 transition-transform duration-300",
-        showStickyBar ? "translate-y-0" : "translate-y-full"
-      )}>
-        <div className="flex-1">
-          <p className="font-body font-500 text-sm text-[#1C1A17] dark:text-[#F5F0E8] truncate">{product.name}</p>
-          <p className="font-accent text-sm text-[#C8A97E]">{product.price.toLocaleString()} zł</p>
-        </div>
-        <button
-          onClick={handleAddToCart}
-          disabled={!product.inStock}
-          className="flex items-center gap-2 px-8 py-3 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-xs tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"
-        >
-          <ShoppingBag size={14} />
-          Add to Cart
-        </button>
-      </div>
+       {/* Sticky Add to Cart bar */}
+       <div className={cn(
+         "fixed bottom-0 left-0 right-0 z-40 bg-[#F5F0E8] dark:bg-[#1C1A17] border-t border-[#C8A97E]/20 px-6 py-4 flex items-center gap-4 transition-transform duration-300",
+         showStickyBar ? "translate-y-0" : "translate-y-full"
+       )}>
+         <div className="flex-1">
+           <p className="font-body font-500 text-sm text-[#1C1A17] dark:text-[#F5F0E8] truncate">{product.name}</p>
+           <p className="font-accent text-sm text-[#C8A97E]">{product.price.toLocaleString()} zł</p>
+         </div>
+         <button
+           onClick={handleWishlist}
+           className={cn(
+             "w-12 h-12 flex items-center justify-center border transition-all duration-200",
+             isWishlisted ? "bg-[#C8A97E]/10 border-[#C8A97E]" : "border-[#C8A97E]/30 hover:border-[#C8A97E]"
+           )}
+         >
+           <Heart
+             size={18}
+             className={cn(
+               "transition-all duration-200",
+               isWishlisted ? "fill-[#C8A97E] text-[#C8A97E]" : "text-[#1C1A17] dark:text-[#F5F0E8]"
+             )}
+           />
+         </button>
+         <button
+           onClick={handleAddToCart}
+           disabled={!product.inStock}
+           className="flex items-center gap-2 px-8 py-3 bg-[#1C1A17] dark:bg-[#F5F0E8] text-[#F5F0E8] dark:text-[#1C1A17] font-body font-600 text-xs tracking-wider uppercase hover:bg-[#C8A97E] hover:text-[#1C1A17] transition-colors"
+         >
+           <ShoppingBag size={14} />
+           Add to Cart
+         </button>
+       </div>
 
       {/* Lightbox */}
       {lightboxOpen && (

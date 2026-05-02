@@ -228,9 +228,9 @@ export function getUser(): User | null {
 }
 
 export function isAuthenticated(): boolean {
-  // Check if we have a JWT cookie by looking for it
-  const cookies = document.cookie;
-  return cookies.includes("jwt=") || cookies.includes("JSESSIONID=");
+  // Since JWT is HttpOnly, we cannot check it via JavaScript
+  // Check localStorage as fallback, or let checkAuth handle the 401
+  return !!getUser();
 }
 
 export interface Wishlist {

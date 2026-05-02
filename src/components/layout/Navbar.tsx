@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Heart, ShoppingBag, X, Menu, User, LogOut } from "lucide-react";
+import {
+  Search,
+  Heart,
+  ShoppingBag,
+  X,
+  Menu,
+  User,
+  LogOut,
+} from "lucide-react";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -25,7 +33,7 @@ export default function Navbar() {
   useEffect(() => {
     // Only load products for search if authenticated
     if (!isAuthenticated) return;
-    
+
     const loadProducts = async () => {
       try {
         const data = await getProducts();
@@ -58,22 +66,26 @@ export default function Navbar() {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (userMenuOpen && !target.closest('.user-menu')) {
+      if (userMenuOpen && !target.closest(".user-menu")) {
         setUserMenuOpen(false);
       }
     };
     if (userMenuOpen) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
     }
   }, [userMenuOpen]);
 
-  const searchResults = searchQuery.trim().length > 1
-    ? products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 4)
-    : [];
+  const searchResults =
+    searchQuery.trim().length > 1
+      ? products
+          .filter(
+            (p) =>
+              p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              p.category.toLowerCase().includes(searchQuery.toLowerCase()),
+          )
+          .slice(0, 4)
+      : [];
 
   const navLinks = [
     { label: "Shop", href: "/shop" },
@@ -88,13 +100,13 @@ export default function Navbar() {
           "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
           scrolled
             ? "bg-[#F5F0E8] dark:bg-[#1C1A17] shadow-[0_2px_20px_rgba(28,26,23,0.06)]"
-            : "bg-transparent"
+            : "bg-transparent",
         )}
       >
         <div className="max-w-[1440px] mx-auto px-8 lg:px-16 h-16 flex items-center justify-between">
           {/* Left nav */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map(link => (
+          <div className="items-center hidden md:flex gap-8">
+            {navLinks.map((link) => (
               <Link
                 key={link.label}
                 to={link.href}
@@ -146,7 +158,7 @@ export default function Navbar() {
                   onClick={() => setCartOpen(true)}
                   className={cn(
                     "relative text-[#1C1A17] dark:text-[#F5F0E8] hover:text-[#C8A97E] dark:hover:text-[#C8A97E] transition-colors",
-                    cartBounce && "cart-bounce"
+                    cartBounce && "cart-bounce",
                   )}
                 >
                   <ShoppingBag size={19} />
@@ -169,7 +181,11 @@ export default function Navbar() {
                   className="flex items-center justify-center w-8 h-8 rounded-full bg-[#C8A97E] text-[#1C1A17] hover:bg-[#1C1A17] hover:text-[#F5F0E8] transition-colors cursor-pointer z-50 overflow-hidden"
                 >
                   {user?.picture ? (
-                    <img src={user.picture} alt="Profile" className="w-full h-full object-cover" />
+                    <img
+                      src={user.picture}
+                      alt="Profile"
+                      className="object-cover w-full h-full"
+                    />
                   ) : (
                     <User size={16} />
                   )}
@@ -178,10 +194,10 @@ export default function Navbar() {
                   <div className="user-menu absolute right-0 top-full mt-2 w-48 bg-[#F5F0E8] dark:bg-[#1C1A17] border border-[#C8A97E] rounded shadow-lg py-2 fade-in z-[60]">
                     <div className="px-4 py-2 border-b border-[#C8A97E]/20 flex items-center gap-3">
                       {user?.picture ? (
-                        <img 
-                          src={user.picture} 
-                          alt="Profile" 
-                          className="w-10 h-10 rounded-full object-cover" 
+                        <img
+                          src={user.picture}
+                          alt="Profile"
+                          className="object-cover w-10 h-10 rounded-full"
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-[#C8A97E] flex items-center justify-center">
@@ -190,7 +206,9 @@ export default function Navbar() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm text-[#1C1A17] dark:text-[#F5F0E8] truncate">
-                          {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.email}
+                          {user?.firstName
+                            ? `${user.firstName} ${user.lastName || ""}`
+                            : user?.email}
                         </p>
                         <p className="text-xs text-[#1C1A17]/60 truncate">
                           {user?.email}
@@ -238,7 +256,10 @@ export default function Navbar() {
       {searchOpen && (
         <div className="fixed inset-0 z-[100] bg-[#F5F0E8]/95 dark:bg-[#1C1A17]/95 backdrop-blur-sm flex flex-col items-center pt-24 fade-in">
           <button
-            onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+            onClick={() => {
+              setSearchOpen(false);
+              setSearchQuery("");
+            }}
             className="absolute top-6 right-8 text-[#1C1A17] dark:text-[#F5F0E8] hover:text-[#C8A97E] transition-colors"
           >
             <X size={24} />
@@ -251,13 +272,13 @@ export default function Navbar() {
                 type="text"
                 placeholder="Search pieces, collections…"
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 bg-transparent font-body text-xl text-[#1C1A17] dark:text-[#F5F0E8] placeholder-[#1C1A17]/40 dark:placeholder-[#F5F0E8]/40 outline-none"
               />
             </div>
             {searchResults.length > 0 && (
               <div className="mt-6 space-y-4">
-                {searchResults.map(product => (
+                {searchResults.map((product) => (
                   <button
                     key={product.id}
                     onClick={() => {
@@ -267,10 +288,18 @@ export default function Navbar() {
                     }}
                     className="w-full flex items-center gap-4 p-3 rounded hover:bg-[#EDE8DF] dark:hover:bg-[#2a2520] transition-colors"
                   >
-                    <img src={product.image} alt={product.name} className="w-14 h-14 object-cover rounded" />
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="object-cover rounded w-14 h-14"
+                    />
                     <div className="text-left">
-                      <p className="font-body font-500 text-[#1C1A17] dark:text-[#F5F0E8]">{product.name}</p>
-                      <p className="font-accent text-sm text-[#C8A97E]">{product.price.toLocaleString()} zł</p>
+                      <p className="font-body font-500 text-[#1C1A17] dark:text-[#F5F0E8]">
+                        {product.name}
+                      </p>
+                      <p className="font-accent text-sm text-[#C8A97E]">
+                        {product.price.toLocaleString()} zł
+                      </p>
                     </div>
                   </button>
                 ))}
@@ -284,13 +313,15 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[100] bg-[#F5F0E8] dark:bg-[#1C1A17] flex flex-col fade-in">
           <div className="flex items-center justify-between px-6 h-16 border-b border-[#C8A97E]/20">
-            <span className="font-display text-2xl font-light tracking-[0.12em] text-[#1C1A17] dark:text-[#F5F0E8]">Forma</span>
+            <span className="font-display text-2xl font-light tracking-[0.12em] text-[#1C1A17] dark:text-[#F5F0E8]">
+              Forma
+            </span>
             <button onClick={() => setMobileMenuOpen(false)}>
               <X size={24} className="text-[#1C1A17] dark:text-[#F5F0E8]" />
             </button>
           </div>
-          <div className="flex-1 flex flex-col justify-center px-8 gap-8">
-            {navLinks.map(link => (
+          <div className="flex flex-col justify-center flex-1 px-8 gap-8">
+            {navLinks.map((link) => (
               <Link
                 key={link.label}
                 to={link.href}
