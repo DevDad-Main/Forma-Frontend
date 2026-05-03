@@ -101,6 +101,21 @@ const checkAuth = useCallback(async () => {
   }, []);
 
   useEffect(() => {
+    // Check if we just logged out (persisted in localStorage)
+    const justLoggedOut = localStorage.getItem("auth_logging_out") === "true";
+    
+    if (justLoggedOut) {
+      console.log("Just logged out, skipping auth check");
+      setIsLoading(false);
+      setUser(null);
+      setIsAuthenticated(false);
+      // Clear the flag after a delay to allow cookie to be cleared
+      setTimeout(() => {
+        resetLoggingOut();
+      }, 2000);
+      return;
+    }
+    
     // Always attempt auth check on mount
     // HttpOnly cookies cannot be checked via JavaScript, so we must always try
     // The backend /auth/me will return 401 if not authenticated
@@ -141,6 +156,8 @@ const logout = async () => {
   }
   try {
     await api.post("/auth/logout", {}, { _skipAuthCheck: true } as any);
+    // Small delay to ensure cookie is cleared before redirect
+    await new Promise(resolve => setTimeout(resolve, 500));
   } catch {
     // Ignore - we're logging out anyway
   }

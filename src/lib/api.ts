@@ -24,12 +24,26 @@ const api = axios.create({
 
 export let isLoggingOut = false;
 
+// Initialize from localStorage (survives page reload)
+if (typeof window !== "undefined") {
+  const loggedOut = localStorage.getItem("auth_logging_out");
+  if (loggedOut === "true") {
+    isLoggingOut = true;
+  }
+}
+
 export function resetLoggingOut() {
   isLoggingOut = false;
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("auth_logging_out");
+  }
 }
 
 export function setLoggingOut() {
   isLoggingOut = true;
+  if (typeof window !== "undefined") {
+    localStorage.setItem("auth_logging_out", "true");
+  }
 }
 
 api.interceptors.response.use(
