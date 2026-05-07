@@ -125,10 +125,10 @@ export default function Navbar() {
             <Menu size={22} />
           </button>
 
-          {/* Logo - centered */}
+          {/* Logo - centered on desktop, left-aligned on mobile */}
           <Link
             to="/"
-            className="absolute left-1/2 -translate-x-1/2 font-display text-2xl font-light tracking-[0.12em] text-[#1C1A17] dark:text-[#F5F0E8] uppercase"
+            className="md:absolute md:left-1/2 md:-translate-x-1/2 font-display text-2xl font-light tracking-[0.12em] text-[#1C1A17] dark:text-[#F5F0E8] uppercase"
           >
             Forma
           </Link>

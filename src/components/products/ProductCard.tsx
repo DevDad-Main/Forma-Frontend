@@ -95,7 +95,7 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
           className={cn(
             "absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200",
             "bg-[#F5F0E8]/80 dark:bg-[#1C1A17]/80 backdrop-blur-sm",
-            "opacity-0 group-hover:opacity-100",
+            "opacity-100 md:opacity-0 md:group-hover:opacity-100",
             heartAnim && "heart-burst"
           )}
         >
@@ -111,7 +111,7 @@ export default function ProductCard({ product, size = "default" }: ProductCardPr
         {/* Quick Add */}
         {product.inStock && (
           <div
-            className="absolute bottom-0 left-0 right-0 transition-all duration-300 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+            className="absolute bottom-0 left-0 right-0 transition-all duration-300 translate-y-0 opacity-100 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100"
           >
             <button
               onClick={handleAddToCart}
