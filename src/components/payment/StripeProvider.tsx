@@ -30,7 +30,11 @@ export default function StripeProviderWrapper({
   useEffect(() => {
     const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
     if (publishableKey && publishableKey !== "pk_test_your_stripe_publishable_key_here") {
-      setStripePromise(loadStripe(publishableKey));
+      setStripePromise(
+        loadStripe(publishableKey, {
+          developerTools: { assistant: { enabled: false } },
+        })
+      );
     } else {
       setError("Stripe publishable key not configured");
       setLoading(false);
