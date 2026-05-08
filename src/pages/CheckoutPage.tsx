@@ -134,7 +134,7 @@ export default function CheckoutPage() {
     console.error("Payment error:", message);
   };
 
-  if (cart.length === 0 && !completed) {
+  if (cart.length === 0 && !completed && step !== "payment") {
     navigate("/shop");
     return null;
   }

@@ -72,7 +72,8 @@ export default function StripeProviderWrapper({
     };
 
     getClientSecret();
-  }, [stripePromise, amount, cart, shippingAddress]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stripePromise, amount, shippingAddress]);
 
   if (loading) {
     return (
