@@ -398,12 +398,12 @@ export async function getOrders(): Promise<Order[]> {
       shippingCost: Math.round((order.shipingCost || order.shippingCost || 0) / 100),
       discount: Math.round((order.discount || 0) / 100),
       items: Array.isArray(order.items) ? order.items.length : 0,
-      shippingAddress: order.street ? {
-        street: order.street || "",
-        city: order.city || "",
-        state: order.state || "",
-        zipCode: order.zipCode || order.zip_code || "",
-        country: order.country || "",
+      shippingAddress: order.shippingAddress ? {
+        street: order.shippingAddress.street || "",
+        city: order.shippingAddress.city || "",
+        state: order.shippingAddress.state || "",
+        zipCode: order.shippingAddress.zipCode || "",
+        country: order.shippingAddress.country || "",
       } : undefined,
     }));
 

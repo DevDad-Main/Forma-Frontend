@@ -104,9 +104,10 @@ export default function CheckoutPage() {
     { id: "white-glove", label: "White Glove Delivery", price: 350, note: "Includes assembly" },
   ];
 
-  const shippingCost = cartTotal >= 2000
-    ? 0
-    : (shippingOptions.find(s => s.id === form.shipping)?.price || 0);
+  const selectedShipping = shippingOptions.find(s => s.id === form.shipping);
+  const shippingCost = selectedShipping
+    ? (selectedShipping.id === "standard" && cartTotal >= 2000 ? 0 : selectedShipping.price)
+    : 0;
 
   const discount = promoApplied ? cartTotal * 0.1 : 0;
   const total = cartTotal + shippingCost - discount;
@@ -346,6 +347,8 @@ export default function CheckoutPage() {
             {step === "payment" && (
               <StripeProviderWrapper 
                 amount={total}
+                shippingCost={shippingCost}
+                discount={discount}
                 shippingAddress={shippingAddress}
               >
                 {({ clientSecret }) => (

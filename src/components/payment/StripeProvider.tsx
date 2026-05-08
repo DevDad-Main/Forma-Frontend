@@ -6,6 +6,8 @@ import { useStore } from "@/context/StoreContext";
 
 interface StripeProviderProps {
   amount: number;
+  shippingCost?: number;
+  discount?: number;
   shippingAddress?: {
     street: string;
     city: string;
@@ -18,6 +20,8 @@ interface StripeProviderProps {
 
 export default function StripeProviderWrapper({
   amount,
+  shippingCost,
+  discount,
   shippingAddress,
   children,
 }: StripeProviderProps) {
@@ -60,6 +64,8 @@ export default function StripeProviderWrapper({
           currency: "pln",
           products,
           shippingAddress,
+          shippingCost,
+          discount,
         };
 
         const response = await createPaymentIntent(request);
