@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Check, ChevronRight, Lock } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
@@ -110,6 +110,14 @@ export default function CheckoutPage() {
 
   const discount = promoApplied ? cartTotal * 0.1 : 0;
   const total = cartTotal + shippingCost - discount;
+
+  const shippingAddress = useMemo(() => ({
+    street: form.address,
+    city: form.city,
+    state: form.state,
+    zipCode: form.zip,
+    country: form.country,
+  }), [form.address, form.city, form.state, form.zip, form.country]);
 
   const handlePromo = () => {
     if (promoCode.toLowerCase() === "forma10") {
@@ -338,13 +346,7 @@ export default function CheckoutPage() {
             {step === "payment" && (
               <StripeProviderWrapper 
                 amount={total}
-                shippingAddress={{
-                  street: form.address,
-                  city: form.city,
-                  state: form.state,
-                  zipCode: form.zip,
-                  country: form.country,
-                }}
+                shippingAddress={shippingAddress}
               >
                 {({ clientSecret }) => (
                   <>
