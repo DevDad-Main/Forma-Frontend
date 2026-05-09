@@ -414,4 +414,9 @@ export async function getOrders(): Promise<Order[]> {
   }
 }
 
+export async function getOrderByNumber(orderNumber: string): Promise<any> {
+  const { data } = await api.get(`/orders/${orderNumber}`);
+  return data;
+}
+
 export { api };

@@ -21,6 +21,7 @@ import {
   deleteAddress,
   getAddresses,
   getOrders,
+  getOrderByNumber,
   type Address,
   type Order,
 } from "@/lib/api";
@@ -121,6 +122,36 @@ export default function ProfilePage() {
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const handleDownloadInvoice = async (order: Order) => {
+    try {
+      const fullOrder = await getOrderByNumber(order.orderNumber);
+
+      generateInvoice(
+        {
+          id: fullOrder.orderNumber,
+          date: fullOrder.createdAt
+            ? new Date(fullOrder.createdAt).toLocaleDateString()
+            : order.date,
+          status: fullOrder.status,
+          items: (fullOrder.items || []).map((item: any) => ({
+            name: item.name || "Product",
+            price: Math.round((item.price || 0) / 100),
+            quantity: item.quantity || 1,
+          })),
+          subtotal: Math.round((fullOrder.subtotal || 0) / 100),
+          shippingCost: Math.round((fullOrder.shippingCost || 0) / 100),
+          discount: Math.round((fullOrder.discount || 0) / 100),
+          total: Math.round((fullOrder.amount || 0) / 100),
+          shippingAddress: fullOrder.shippingAddress,
+        },
+        profile,
+      );
+    } catch (error) {
+      console.error("Failed to fetch order details:", error);
+      toast.error("Failed to download invoice");
+    }
   };
 
   const tabs = [
@@ -371,7 +402,7 @@ export default function ProfilePage() {
                             {order.status}
                           </p>
                           <button
-                            onClick={() => generateInvoice(order, profile)}
+                            onClick={() => handleDownloadInvoice(order)}
                             className="mt-2 text-xs font-accent text-[#C8A97E] underline underline-offset-2 hover:text-[#1C1A17] dark:hover:text-[#F5F0E8] transition-colors"
                           >
                             Download Invoice
