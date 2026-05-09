@@ -1,16 +1,25 @@
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { setStoredToken } from "@/lib/api";
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
   const hasRun = useRef(false);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
+
+    const token = searchParams.get("token");
+    if (token) {
+      setStoredToken(token);
+      // Clean token from URL so it doesn't linger in the address bar
+      window.history.replaceState({}, "", "/login/oauth2/code/google");
+    }
 
     checkAuth().then((user) => {
       if (user) {
@@ -21,7 +30,7 @@ export default function OAuthCallback() {
         navigate("/");
       }
     });
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   return (
     <div className="min-h-screen bg-[#F5F0E8] flex items-center justify-center">

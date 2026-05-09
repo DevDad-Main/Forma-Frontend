@@ -23,12 +23,18 @@ const api = axios.create({
 });
 
 export let isLoggingOut = false;
+const TOKEN_KEY = "auth_token";
 
 // Initialize from localStorage (survives page reload)
 if (typeof window !== "undefined") {
   const loggedOut = localStorage.getItem("auth_logging_out");
   if (loggedOut === "true") {
     isLoggingOut = true;
+  }
+
+  const savedToken = localStorage.getItem(TOKEN_KEY);
+  if (savedToken) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${savedToken}`;
   }
 }
 
@@ -44,6 +50,21 @@ export function setLoggingOut() {
   if (typeof window !== "undefined") {
     localStorage.setItem("auth_logging_out", "true");
   }
+}
+
+export function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setStoredToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
+export function clearStoredToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+  delete api.defaults.headers.common["Authorization"];
 }
 
 api.interceptors.response.use(
@@ -66,6 +87,7 @@ api.interceptors.response.use(
     ) {
       isLoggingOut = true;
       localStorage.removeItem("auth_user");
+      clearStoredToken();
       // Clear any running intervals by reloading to clean state
       // Only redirect if we're not already on the home page
       if (window.location.pathname !== "/") {
@@ -147,12 +169,14 @@ export interface UpdateAddressRequest {
 
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {
   const { data } = await api.post<AuthResponse>("/auth/login", credentials);
+  setStoredToken(data.token);
   localStorage.setItem("auth_user", JSON.stringify(data.user));
   return data;
 }
 
 export async function register(req: RegisterRequest): Promise<AuthResponse> {
   const { data } = await api.post<AuthResponse>("/auth/register", req);
+  setStoredToken(data.token);
   localStorage.setItem("auth_user", JSON.stringify(data.user));
   return data;
 }

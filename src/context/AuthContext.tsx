@@ -11,6 +11,7 @@ import {
   isLoggingOut,
   setLoggingOut,
   resetLoggingOut,
+  clearStoredToken,
   type User,
   type LoginRequest,
   type RegisterRequest,
@@ -158,6 +159,7 @@ const checkAuth = useCallback(async (): Promise<User | null> => {
 const logout = async () => {
   googleLogout();
   localStorage.removeItem("auth_user");
+  clearStoredToken();
   setLoggingOut();
   // Clear the auth check interval to prevent re-authentication
   if (checkIntervalRef.current) {
