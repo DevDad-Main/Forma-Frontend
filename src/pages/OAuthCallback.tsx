@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
@@ -13,12 +12,14 @@ export default function OAuthCallback() {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    checkAuth().then(() => {
-      toast.success("Welcome!");
-      navigate("/profile");
-    }).catch(() => {
-      toast.error("Sign in failed");
-      navigate("/");
+    checkAuth().then((user) => {
+      if (user) {
+        toast.success("Welcome!");
+        navigate("/profile");
+      } else {
+        toast.error("Sign in failed");
+        navigate("/");
+      }
     });
   }, [navigate]);
 

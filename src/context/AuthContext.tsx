@@ -23,7 +23,7 @@ interface AuthContextType {
   login: (credentials: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -42,17 +42,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const lastAuthCheckRef = useRef<number>(0);
   const failedAuthAttempts = useRef<number>(0);
 
-const checkAuth = useCallback(async () => {
+const checkAuth = useCallback(async (): Promise<User | null> => {
   // Don't check auth if we're logging out
   if (isLoggingOut) {
     console.log("Skipping auth check - logging out");
-    return;
+    return null;
   }
   const now = Date.now();
   // Prevent rapid successive calls (minimum 5 seconds between calls)
   if (now - lastAuthCheckRef.current < 5000) {
     console.log("Auth check throttled, skipping...");
-    return;
+    return null;
   }
   lastAuthCheckRef.current = now;
 
@@ -72,6 +72,8 @@ const checkAuth = useCallback(async () => {
           checkAuth();
         }, 30000);
       }
+
+      return currentUser;
     } catch (error: any) {
       console.error("Auth check failed:", error);
       if (error?.response?.status === 401) {
@@ -97,6 +99,7 @@ const checkAuth = useCallback(async () => {
         console.log("Other error, keeping current auth state");
       }
       setIsLoading(false);
+      return null;
     }
   }, []);
 
@@ -116,6 +119,13 @@ const checkAuth = useCallback(async () => {
       return;
     }
     
+    // Skip auth check on OAuth callback pages — OAuthCallback handles it
+    if (window.location.pathname.includes("/login/oauth2/code/")) {
+      console.log("On OAuth callback page, deferring auth check to OAuthCallback");
+      setIsLoading(false);
+      return;
+    }
+
     // Always attempt auth check on mount
     // HttpOnly cookies cannot be checked via JavaScript, so we must always try
     // The backend /auth/me will return 401 if not authenticated
