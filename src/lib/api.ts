@@ -370,22 +370,10 @@ export async function removeFromWishlist(
 }
 
 export interface Order {
-  id: string;
-  orderNumber?: string;
+  orderNumber: string;
   date: string;
   status: string;
   total: number;
-  subtotal?: number;
-  shippingCost?: number;
-  discount?: number;
-  items: number;
-  shippingAddress?: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
 }
 
 export async function getOrders(): Promise<Order[]> {
@@ -411,24 +399,12 @@ export async function getOrders(): Promise<Order[]> {
     }
 
     const transformed = orders.map((order: any) => ({
-      id: String(order.id || "N/A"),
-      orderNumber: order.orderNumber || order.order_number || `FMA-${order.id}`,
+      orderNumber: order.orderNumber || `FMA-${order.id || Date.now()}`,
       date: order.createdAt
         ? new Date(order.createdAt).toLocaleDateString()
         : new Date().toLocaleDateString(),
       status: order.status || "Processing",
-      total: Math.round((order.amount || 0) / 100),
-      subtotal: Math.round((order.subtotal || order.amount || 0) / 100),
-      shippingCost: Math.round((order.shipingCost || order.shippingCost || 0) / 100),
-      discount: Math.round((order.discount || 0) / 100),
-      items: Array.isArray(order.items) ? order.items.length : 0,
-      shippingAddress: order.shippingAddress ? {
-        street: order.shippingAddress.street || "",
-        city: order.shippingAddress.city || "",
-        state: order.shippingAddress.state || "",
-        zipCode: order.shippingAddress.zipCode || "",
-        country: order.shippingAddress.country || "",
-      } : undefined,
+      total: Math.round(parseInt(order.amount || "0") / 100),
     }));
 
     return transformed;

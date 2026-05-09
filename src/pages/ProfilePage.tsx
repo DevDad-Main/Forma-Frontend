@@ -351,7 +351,7 @@ export default function ProfilePage() {
                   <div className="space-y-4">
                     {orders.map((order) => (
                       <div
-                        key={order.id}
+                        key={order.orderNumber}
                         className="flex items-center justify-between p-4 bg-[#F5F0E8] dark:bg-[#1C1A17] rounded-lg"
                       >
                         <div>
