@@ -146,6 +146,7 @@ export default function CheckoutPage() {
 
   const handlePaymentSuccess = () => {
     setCompleted(true);
+    setCart([]);
   };
 
   const handlePaymentError = (message: string) => {

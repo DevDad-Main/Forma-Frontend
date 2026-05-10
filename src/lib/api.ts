@@ -399,7 +399,11 @@ export async function getOrders(): Promise<Order[]> {
       return [];
     }
 
-    const transformed = orders.map((order: any) => ({
+    const sorted = [...orders].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    const transformed = sorted.map((order: any) => ({
       orderNumber: order.orderNumber || `FMA-${order.id || Date.now()}`,
       date: order.createdAt
         ? new Date(order.createdAt).toLocaleDateString()

@@ -90,7 +90,7 @@ export default function Navbar() {
   const navLinks = [
     { label: "Shop", href: "/shop" },
     { label: "Collections", href: "/shop" },
-    { label: "About", href: "/" },
+    { label: "About", href: "/about" },
   ];
 
   return (

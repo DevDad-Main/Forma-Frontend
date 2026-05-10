@@ -11,6 +11,7 @@ import ProductDetailPage from "@/pages/ProductDetailPage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import WishlistPage from "@/pages/WishlistPage";
 import ProfilePage from "@/pages/ProfilePage";
+import AboutPage from "@/pages/AboutPage";
 import OAuthCallback from "@/pages/OAuthCallback";
 import AdminRoute from "@/components/admin/AdminRoute";
 import AdminProductsPage from "@/pages/admin/AdminProductsPage";
@@ -44,6 +45,7 @@ function App() {
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/about" element={<AboutPage />} />
               <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/login/oauth2/code/google" element={<OAuthCallback />} />
