@@ -57,7 +57,6 @@ export default function CheckoutPage() {
   const stepIndex = steps.findIndex(s => s.id === step);
 
   const { user } = useAuth();
-  const [useDefaultAddress, setUseDefaultAddress] = useState(true);
   const [useUserInfo, setUseUserInfo] = useState(true);
 
   const [form, setForm] = useState({
@@ -73,7 +72,7 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    if (user && useDefaultAddress && user.address) {
+    if (user && user.address) {
       setForm(prev => ({
         ...prev,
         address: user.address.street || "",
@@ -83,7 +82,7 @@ export default function CheckoutPage() {
         country: user.address.country || "United States",
       }));
     }
-  }, [user, useDefaultAddress]);
+  }, [user]);
 
   useEffect(() => {
     if (user && useUserInfo) {
@@ -265,41 +264,14 @@ export default function CheckoutPage() {
               <>
                 <h2 className="font-display text-3xl font-light text-[#1C1A17] dark:text-[#F5F0E8]">Shipping Address</h2>
 
-                {user?.address && (
-                  <div className="mb-6 p-4 bg-[#C8A97E]/10 border border-[#C8A97E]/20">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={useDefaultAddress}
-                        onChange={e => setUseDefaultAddress(e.target.checked)}
-                        className="mt-1 w-4 h-4 accent-[#C8A97E]"
-                      />
-                      <div>
-                        <p className="font-body text-sm font-500 text-[#1C1A17] dark:text-[#F5F0E8]">Use default shipping address</p>
-                        <p className="font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60 mt-1">
-                          {user.address.street}, {user.address.city}, {user.address.state} {user.address.zipCode}
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                )}
-
-                {!useDefaultAddress && (
-                  <div className="mb-4 p-3 bg-[#1C1A17]/5 dark:bg-[#F5F0E8]/5 border border-[#C8A97E]/20">
-                    <p className="font-accent text-xs text-[#1C1A17]/60 dark:text-[#F5F0E8]/60">
-                      Enter a different shipping address for this order
-                    </p>
-                  </div>
-                )}
-
-                <InputField label="Street Address" value={form.address} onChange={v => update("address", v)} placeholder="123 Main Street" disabled={useDefaultAddress && !!user?.address?.street} />
+                <InputField label="Street Address" value={form.address} onChange={v => update("address", v)} placeholder="123 Main Street" />
                 <div className="grid grid-cols-2 gap-4">
-                  <InputField label="City" value={form.city} onChange={v => update("city", v)} disabled={useDefaultAddress && !!user?.address?.city} />
-                  <InputField label="State / Province" value={form.state} onChange={v => update("state", v)} disabled={useDefaultAddress && !!user?.address?.state} />
+                  <InputField label="City" value={form.city} onChange={v => update("city", v)} />
+                  <InputField label="State / Province" value={form.state} onChange={v => update("state", v)} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <InputField label="ZIP / Postal Code" value={form.zip} onChange={v => update("zip", v)} disabled={useDefaultAddress && !!user?.address?.zipCode} />
-                  <InputField label="Country" value={form.country} onChange={v => update("country", v)} disabled={useDefaultAddress && !!user?.address?.country} />
+                  <InputField label="ZIP / Postal Code" value={form.zip} onChange={v => update("zip", v)} />
+                  <InputField label="Country" value={form.country} onChange={v => update("country", v)} />
                 </div>
 
                 {/* Shipping method */}
