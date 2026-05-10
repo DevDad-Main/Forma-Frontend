@@ -46,13 +46,13 @@ export function generateInvoice(order: any, user: any) {
   // Order info
   doc.setFontSize(9);
   doc.setTextColor(100);
-  doc.text(`Invoice #: FMA-${order.id}`, 20, 65);
+  doc.text(`Invoice #: ${order.id}`, 20, 65);
   doc.text(`Date: ${order.date}`, 20, 72);
   doc.text(`Status: ${order.status}`, 20, 79);
 
   // Customer info
   if (user) {
-    doc.text(`Customer: ${user.firstName} ${user.lastName}`, pageWidth - 20, 65, { align: "right" });
+    doc.text(`Customer: ${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`, pageWidth - 20, 65, { align: "right" });
     doc.text(`Email: ${user.email}`, pageWidth - 20, 72, { align: "right" });
   }
 
@@ -152,5 +152,5 @@ export function generateInvoice(order: any, user: any) {
   doc.text("Forma Furniture Store • www.forma.com", pageWidth / 2, 285, { align: "center" });
 
   // Save
-  doc.save(`Invoice_FMA-${order.id}.pdf`);
+  doc.save(`Invoice_${order.id}.pdf`);
 }
