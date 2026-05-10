@@ -136,8 +136,8 @@ export default function ProfilePage() {
             : order.date,
           status: fullOrder.status,
           items: (fullOrder.items || []).map((item: any) => ({
-            name: item.name || "Product",
-            price: Math.round((item.price || 0) / 100),
+            name: item.productName || "Product",
+            price: Math.round((item.priceAtPurchase || 0) / 100),
             quantity: item.quantity || 1,
           })),
           subtotal: Math.round((fullOrder.subtotal || 0) / 100),
