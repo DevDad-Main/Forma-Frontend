@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import StripeProviderWrapper from "@/components/payment/StripeProvider";
 import StripePaymentForm from "@/components/payment/StripePaymentForm";
 import { useAuth } from "@/context/AuthContext";
+import { getAddresses } from "@/lib/api";
 
 interface InputFieldProps {
   label: string;
@@ -72,16 +73,25 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    if (user && user.address) {
-      setForm(prev => ({
-        ...prev,
-        address: user.address.street || "",
-        city: user.address.city || "",
-        state: user.address.state || "",
-        zip: user.address.zipCode || "",
-        country: user.address.country || "United States",
-      }));
-    }
+    if (!user) return;
+    (async () => {
+      try {
+        const addrs = await getAddresses();
+        const defaultAddr = addrs.find(a => a.isDefault) || addrs[0];
+        if (defaultAddr) {
+          setForm(prev => ({
+            ...prev,
+            address: defaultAddr.street || "",
+            city: defaultAddr.city || "",
+            state: defaultAddr.state || "",
+            zip: defaultAddr.zipCode || "",
+            country: defaultAddr.country || "United States",
+          }));
+        }
+      } catch {
+        // address fetch failed, user can type manually
+      }
+    })();
   }, [user]);
 
   useEffect(() => {
