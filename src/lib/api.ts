@@ -76,8 +76,9 @@ api.interceptors.response.use(
     const url = config?.url || "";
     // Don't redirect for wishlist endpoints (they may return 401 if not authenticated)
     const isWishlistEndpoint = url.includes("/wishlist");
-    const isProductsEndpoint = url.includes("/products") || url.includes("/shop");
-    
+    const isProductsEndpoint =
+      url.includes("/products") || url.includes("/shop");
+
     if (
       error.response?.status === 401 &&
       !isLoggingOut &&
@@ -415,7 +416,7 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function getOrderByNumber(orderNumber: string): Promise<any> {
-  const { data } = await api.get(`/orders/${orderNumber}`);
+  const { data } = await api.get(`/orders/${encodeURIComponent(orderNumber)}`);
   return data;
 }
 
